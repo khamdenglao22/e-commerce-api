@@ -1,0 +1,265 @@
+const { Op } = require("sequelize");
+const CategoryBofModel = require("../../models/models-bof/category-bof-model");
+const BrandBofModel = require("../../models/models-bof/brand-bof-model");
+const { PRODUCT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
+const {
+  HTTP_BAD_REQUEST,
+  HTTP_SUCCESS,
+  HTTP_NOT_FOUND,
+} = require("../../utils/http_status");
+const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
+const { productSchema } = require("../../schemas/product-schemas");
+const path = require("path");
+const fs = require("fs");
+
+const getPagination = (page, size) => {
+  const limit = size ? +size : 10;
+  const offset = page && page > 0 ? (page - 1) * limit : 0;
+  //   console.log("+size", +size, "offset", offset);
+  return { limit, offset };
+};
+
+const getPagingData = (data, page, limit) => {
+  const { count: totalItems, rows: result } = data;
+  const currentPage = page ? +page : 0;
+  const totalPages = Math.ceil(totalItems / limit);
+  return { totalItems, result, totalPages, currentPage };
+};
+
+exports.findAllProduct = async (req, res) => {
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  try {
+    await ProductMasterBofModel.findAndCountAll({
+      order: [["id", "DESC"]],
+      limit,
+      offset,
+      include: [
+        {
+          model: BrandBofModel,
+          as: "brand",
+        },
+        {
+          model: CategoryBofModel,
+          as: "category",
+        },
+      ],
+    })
+      .then((data) => {
+        const response = getPagingData(data, page, limit);
+        response.result = response.result.map((our) => {
+          if (our.image) {
+            our.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.image}`;
+          } else {
+            our.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+          }
+          return our;
+        });
+        res.json(response);
+      })
+      .catch((err) => {
+        res
+          .status(HTTP_BAD_REQUEST)
+          .json({ status: HTTP_BAD_REQUEST, msg: err.message });
+      });
+  } catch (error) {
+    res
+      .status(HTTP_BAD_REQUEST)
+      .json({ status: HTTP_BAD_REQUEST, msg: error.message });
+  }
+};
+
+exports.findProductById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    let result = await ProductMasterBofModel.findByPk(id, {
+      include: [
+        {
+          model: BrandBofModel,
+          as: "brand",
+        },
+        {
+          model: CategoryBofModel,
+          as: "category",
+        },
+      ],
+    });
+    if (!result) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "Product not found",
+      });
+    }
+    if (result.image) {
+      result.dataValues.image = `${PRODUCT_MEDIA_URL}/${result.image}`;
+    } else {
+      result.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+    }
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: result,
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.createProduct = async (req, res) => {
+  try {
+    if (!req.files) {
+      delete req.body.image;
+    }
+    const { error } = productSchema.validate(req.body);
+    if (error) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: error.message,
+      });
+    }
+    // Check if product exists
+    const existingProduct = await ProductMasterBofModel.findOne({
+      where: {
+        [Op.or]: [
+          { name_en: req.body.name_en },
+          { name_th: req.body.name_th },
+          { name_ch: req.body.name_ch },
+        ],
+      },
+    });
+    if (existingProduct) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "Product already exists",
+      });
+    }
+
+    // Upload image
+    if (req.files && req.files.image) {
+      let image = req.files.image;
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg"];
+      if (!allowFiles.includes(image.mimetype)) {
+        return next({
+          status: 400,
+          msg: "ຮູບຫ້ອງຄ້າຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
+        });
+      }
+      const ext = path.extname(image.name);
+      const filename = Date.now() + ext;
+      image.mv(
+        path.join(__dirname, `../../uploads/images/products/${filename}`)
+      );
+      req.body.image = filename;
+    }
+
+    let result = await ProductMasterBofModel.create(req.body);
+
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: result,
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!req.files) {
+      delete req.body.image;
+    }
+    const { error } = productSchema.validate(req.body);
+    if (error) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: error.message,
+      });
+    }
+    let result = await ProductMasterBofModel.findByPk(id);
+    if (!result) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "Product not found",
+      });
+    }
+    if (req.files && req.files.image) {
+      let image = req.files.image;
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg"];
+      if (!allowFiles.includes(image.mimetype)) {
+        return next({
+          status: 400,
+          msg: "ຮູບຫ້ອງຄ້າຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
+        });
+      }
+      const ext = path.extname(image.name);
+      const filename = Date.now() + ext;
+      image.mv(
+        path.join(__dirname, `../../uploads/images/products/${filename}`)
+      );
+      req.body.image = filename;
+      if (result.image) {
+        // Delete old image file if it exists
+        const oldImagePath = path.join(
+          __dirname,
+          `../../uploads/images/products/${result.image}`
+        );
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
+    }
+    await ProductMasterBofModel.update(req.body, {
+      where: { id: id },
+    });
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      msg: "Product updated successfully",
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let result = await ProductMasterBofModel.findByPk(id);
+    if (!result) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "Product not found",
+      });
+    }
+    if (result.image) {
+      // Delete image file if it exists
+      const oldImagePath = path.join(
+        __dirname,
+        `../../uploads/images/products/${result.image}`
+      );
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+    await ProductMasterBofModel.destroy({
+      where: { id: id },
+    });
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      msg: "Product deleted successfully",
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
