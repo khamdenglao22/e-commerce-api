@@ -27,11 +27,24 @@ const getPagingData = (data, page, limit) => {
 };
 
 exports.findAllProduct = async (req, res) => {
-  const { page, size } = req.query;
+  const { page, size, p_name } = req.query;
   const { limit, offset } = getPagination(page, size);
+
+  let filter = {};
+  if (p_name) {
+    filter = {
+      [Op.or]: [
+        { name_en: { [Op.like]: `%${p_name}%` } },
+        { name_th: { [Op.like]: `%${p_name}%` } },
+        { name_ch: { [Op.like]: `%${p_name}%` } },
+      ],
+    };
+  }
+
   try {
     await ProductMasterBofModel.findAndCountAll({
       order: [["id", "DESC"]],
+      where: { ...filter },
       limit,
       offset,
       include: [

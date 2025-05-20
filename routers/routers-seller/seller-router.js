@@ -1,11 +1,12 @@
 const router = require("express").Router();
 const {
   createSeller,
+  findSellerById,
+  updateSeller,
 } = require("../../controllers/controllers-seller/seller-controller");
-const {
-  getCurrentCustomer,
-} = require("../../controllers/controllers-cus/auth-cus-controller");
 
-router.post("/", getCurrentCustomer, createSeller);
+router.post("/", createSeller);
+router.get("/", findSellerById);
+router.put("/", updateSeller);
 
 module.exports = router;

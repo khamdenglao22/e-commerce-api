@@ -40,7 +40,7 @@ const SellerModel = sequelize.define(
     },
     invitation_code: {
       type: DataTypes.STRING(250),
-      allowNull: false,
+      allowNull: true,
     },
     customer_id: {
       type: DataTypes.INTEGER,

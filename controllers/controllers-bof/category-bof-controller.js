@@ -5,13 +5,20 @@ const {
   CATEGORY_MEDIA_URL,
   BASE_MEDIA_URL,
 } = require("../../utils/constant");
-const { HTTP_NOT_FOUND, HTTP_BAD_REQUEST, HTTP_SUCCESS, HTTP_CREATED } = require("../../utils/http_status");
+const {
+  HTTP_NOT_FOUND,
+  HTTP_BAD_REQUEST,
+  HTTP_SUCCESS,
+  HTTP_CREATED,
+} = require("../../utils/http_status");
 const fs = require("fs");
 const path = require("path");
 
 exports.findAllCategory = async (req, res) => {
   try {
-    let result = await CategoryBofModel.findAll();
+    let result = await CategoryBofModel.findAll({
+      order: [["id", "DESC"]],
+    });
     result = result.map((row) => {
       if (row.image) {
         row.dataValues.image = `${CATEGORY_MEDIA_URL}/${row.image}`;

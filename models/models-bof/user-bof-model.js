@@ -1,5 +1,6 @@
 const sequelize = require("../../config");
 const { DataTypes } = require("sequelize");
+const SellerModel = require("../models-seller/seller-model");
 const RoleBofModel = require("./role-bof-model");
 
 const UserBofModel = sequelize.define(
@@ -27,6 +28,15 @@ const UserBofModel = sequelize.define(
       allowNull: false,
       references: { model: RoleBofModel, key: "id" },
     },
+    user_type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    seller_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: SellerModel, key: "id" },
+    },
     status: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
@@ -38,9 +48,5 @@ const UserBofModel = sequelize.define(
   }
 );
 
-UserBofModel.belongsTo(RoleBofModel, {
-  foreignKey: "role_id",
-  as: "role",
-});
 
 module.exports = UserBofModel;

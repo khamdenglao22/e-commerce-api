@@ -7,7 +7,7 @@ const {
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { userLoginSchema } = require("../../schemas/user-schemas");
-const UserBofModel = require("../../models/models-bof/user-bot-model");
+const UserBofModel = require("../../models/models-bof/user-bof-model");
 
 exports.loginUser = async (req, res) => {
   try {
@@ -37,6 +37,7 @@ exports.loginUser = async (req, res) => {
       {
         user_id: user.id,
         fullname: user.fullname,
+        user_type: user.user_type,
       },
       process.env.SECRET_KEY,
       {
@@ -61,7 +62,7 @@ exports.getCurrentUser = async (req, res, next) => {
     const token = req.headers.authorization;
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
 
-    const user = await UserBofModel.findByPk(decoded.user_id);
+    const user = await UserBofModel.findByPk(decoded.user_id,{where:{user_type:'officer'}});
     if (!user) {
       return res.status(401).send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ" });
     }
