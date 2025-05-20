@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const UserBofModel = require("../../models/models-bof/user-bot-model");
+const UserBofModel = require("../../models/models-bof/user-bof-model");
 const {
   HTTP_SUCCESS,
   HTTP_BAD_REQUEST,
@@ -21,6 +21,7 @@ exports.findAllUser = async (req, res) => {
   try {
     let result = await UserBofModel.findAll({
       attributes: { exclude: ["password"] },
+      where: { user_type: 'officer' }
     });
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
@@ -84,6 +85,7 @@ exports.createUser = async (req, res) => {
     }
     // hash password
     req.body.password = passwordHash(req.body.password);
+    req.body.user_type = "officer";
     let result = await UserBofModel.create(req.body);
     delete result.dataValues.password;
     res.status(HTTP_SUCCESS).json({

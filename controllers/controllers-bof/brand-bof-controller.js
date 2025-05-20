@@ -13,7 +13,9 @@ const { brandSchema } = require("../../schemas/brand-schemas");
 
 exports.findAllBrand = async (req, res) => {
   try {
-    let result = await BrandBofModel.findAll();
+    let result = await BrandBofModel.findAll({
+      order: [["id", "DESC"]],
+    });
     result = result.map((row) => {
       if (row.image) {
         row.dataValues.image = `${BRAND_MEDIA_URL}/${row.image}`;
@@ -47,7 +49,7 @@ exports.findBrandById = async (req, res) => {
     if (result.image) {
       result.dataValues.image = `${BRAND_MEDIA_URL}/${result.image}`;
     } else {
-      result.dataValues.image = `${BASE_MEDIA_URL}/logo.jpg`;
+      result.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
     }
 
     res.status(HTTP_SUCCESS).json({
@@ -144,7 +146,7 @@ exports.updateBrand = async (req, res) => {
     // start transaction
     await sequelize.transaction(async (t) => {
       // update brand
-      const updatedBrand = await BrandBofModel.update(req.body, {
+      await BrandBofModel.update(req.body, {
         where: { id },
         transaction: t,
       });
@@ -195,7 +197,6 @@ exports.deleteBrand = async (req, res) => {
     // Delete brand
     await BrandBofModel.destroy({
       where: { id },
-      transaction: t,
     });
 
     if (result.image) {

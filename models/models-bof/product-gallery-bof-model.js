@@ -25,9 +25,9 @@ const ProductGalleryBofModel = sequelize.define(
   }
 );
 
-// ProductMaterBofModel.hasMany(ProductGalleryBofModel, {
-//   foreignKey: "product_id",
-//   as: "product_gallery",
-// });
+ProductMaterBofModel.hasMany(ProductGalleryBofModel, {
+  foreignKey: "product_id",
+  as: "product_gallery",
+});
 
 module.exports = ProductGalleryBofModel;

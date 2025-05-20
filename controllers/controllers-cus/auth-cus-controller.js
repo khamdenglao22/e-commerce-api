@@ -8,6 +8,7 @@ const {
 } = require("../../utils/http_status");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const SellerModel = require("../../models/models-seller/seller-model");
 
 exports.loginCustomer = async (req, res) => {
   try {
