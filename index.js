@@ -44,7 +44,7 @@ const sellerBofRoute = require("./routers/routers-bof/seller-bof-router");
 app.use("/api/v1/brands", getCurrentUser, brandRoute);
 app.use("/api/v1/category", getCurrentUser, categoryRoute);
 app.use("/api/v1/products", getCurrentUser, productMasterRoute);
-app.use("/api/v1/roles", getCurrentUser, roleRoute);
+app.use("/api/v1/roles", roleRoute);
 app.use("/api/v1/product-gallery", getCurrentUser, productGalleryRoute);
 app.use("/api/v1/seller", getCurrentUser, sellerBofRoute);
 app.use("/api/v1/users", userRoute);
