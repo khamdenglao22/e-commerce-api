@@ -47,7 +47,7 @@ app.use("/api/v1/products", getCurrentUser, productMasterRoute);
 app.use("/api/v1/roles", getCurrentUser, roleRoute);
 app.use("/api/v1/product-gallery", getCurrentUser, productGalleryRoute);
 app.use("/api/v1/seller", getCurrentUser, sellerBofRoute);
-app.use("/api/v1/users", getCurrentUser, userRoute);
+app.use("/api/v1/users", userRoute);
 app.use("/api/v1/login", userAuth);
 
 // ສ່ວນສຳລັບ API Customer ສໍາລັບສ່ວນຂອງ ລູກຄ້າ
