@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const RoleBofModel = require("../../models/models-bof/role-bof-model");
 const {
   HTTP_BAD_REQUEST,
