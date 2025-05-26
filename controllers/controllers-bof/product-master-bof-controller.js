@@ -27,7 +27,7 @@ const getPagingData = (data, page, limit) => {
 };
 
 exports.findAllProduct = async (req, res) => {
-  const { page, size, p_name } = req.query;
+  const { page, size, p_name, category_id, brand_id } = req.query;
   const { limit, offset } = getPagination(page, size);
 
   let filter = {};
@@ -40,6 +40,23 @@ exports.findAllProduct = async (req, res) => {
       ],
     };
   }
+  // console.log("filter", filter);
+
+  if (category_id && !brand_id) {
+    filter = {
+      [Op.or]: [{ category_id: category_id }],
+    };
+  } else if (!category_id && brand_id) {
+    filter = {
+      [Op.and]: [{ brand_id: brand_id }],
+    };
+  } else if (category_id && brand_id) {
+    filter = {
+      [Op.and]: [{ category_id: category_id }, { brand_id: brand_id }],
+    };
+  }
+
+  // console.log("filter", filter);
 
   try {
     await ProductMasterBofModel.findAndCountAll({

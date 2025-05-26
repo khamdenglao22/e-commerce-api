@@ -6,6 +6,7 @@ const { PRODUCT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
 const ProductGalleryBofModel = require("../../models/models-bof/product-gallery-bof-model");
 const BrandBofModel = require("../../models/models-bof/brand-bof-model");
 const CategoryBofModel = require("../../models/models-bof/category-bof-model");
+const SellerModel = require("../../models/models-seller/seller-model");
 
 exports.findProduct = async (req, res) => {
   const { size } = req.query;
@@ -65,6 +66,10 @@ exports.findProductById = async (req, res) => {
               as: "category",
             },
           ],
+        },
+        {
+          model: SellerModel,
+          as: "seller",
         },
       ],
     });

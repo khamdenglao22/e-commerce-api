@@ -12,19 +12,18 @@ const SellerModel = require("../../models/models-seller/seller-model");
 
 exports.getCurrentSeller = async (req, res, next) => {
   if (!req.headers.authorization) {
-    return res.status(401).send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ0" });
+    return res.status(401).send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ" });
   }
 
   try {
     const token = req.headers.authorization;
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
 
-
     const user = await UserBofModel.findByPk(decoded.user_id, {
       where: { user_type: decoded.user_type },
     });
     if (!user) {
-      return res.status(401).send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ1" });
+      return res.status(401).send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ" });
     }
 
     const seller = await SellerModel.findOne({
@@ -33,7 +32,7 @@ exports.getCurrentSeller = async (req, res, next) => {
       },
     });
     if (!seller) {
-      return res.status(401).send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ1" });
+      return res.status(401).send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ " });
     }
 
     if (user.user_type !== "seller") {

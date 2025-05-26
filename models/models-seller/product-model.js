@@ -37,4 +37,9 @@ ProductModel.belongsTo(ProductMasterBofModel, {
   as: "product_master",
 });
 
+ProductModel.belongsTo(SellerModel, {
+  foreignKey: "seller_id",
+  as: "seller",
+});
+
 module.exports = ProductModel;

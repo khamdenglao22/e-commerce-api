@@ -59,11 +59,13 @@ const customerRoute = require("./routers/routers-cus/customer-cus-router");
 const authRoute = require("./routers/routers-cus/auth-cus-router");
 const cartRoute = require("./routers/routers-cus/cart-cus-router");
 const productCustomerRoute = require("./routers/routers-cus/product-cus-router");
+const categoryCustomerRoute = require("./routers/routers-cus/category-cus-router");
 
 app.use("/api/v1/customer/customers", customerRoute);
 app.use("/api/v1/customer/login-customer", authRoute);
 app.use("/api/v1/customer/cart", getCurrentCustomer, cartRoute);
 app.use("/api/v1/customer/products", productCustomerRoute);
+app.use("/api/v1/customer/category", categoryCustomerRoute);
 
 // ສ່ວນສຳລັບ API Seller
 
