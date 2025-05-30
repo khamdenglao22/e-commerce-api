@@ -67,6 +67,16 @@ exports.createProduct = async (req, res) => {
   try {
     const { seller_id } = req.seller;
     const { product_id } = req.body;
+    for (let i = 0; i < product_id.length; i++) {
+      const existingProduct = await ProductModel.findOne({
+        where: {
+          [Op.and]: [{ product_id: product_id[i] }, { seller_id: seller_id }],
+        },
+      });
+      if (existingProduct) {
+        product_id = product_id.filter((id) => id !== product_id[i]);
+      }
+    }
 
     const newProduct = await ProductModel.bulkCreate(
       product_id.map((id) => ({ seller_id, product_id: id }))

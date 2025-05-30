@@ -32,5 +32,9 @@ const ProductSizeModel = sequelize.define(
     timestamps: false,
   }
 );
+ProductSizeModel.belongsTo(CategoryBofModel, {
+  foreignKey: "category_id",
+  as: "category",
+});
 
 module.exports = ProductSizeModel;
