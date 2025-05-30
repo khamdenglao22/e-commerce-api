@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
 const ProductModel = require("../../models/models-seller/product-model");
 const { PRODUCT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
