@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
 const ProductModel = require("../../models/models-seller/product-model");
 const { PRODUCT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
@@ -76,6 +77,13 @@ exports.createProduct = async (req, res) => {
       if (existingProduct) {
         product_id = product_id.filter((id) => id !== product_id[i]);
       }
+    }
+
+    if (product_id.length === 0) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "All products already exist for this seller",
+      });
     }
 
     const newProduct = await ProductModel.bulkCreate(
