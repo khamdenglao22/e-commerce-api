@@ -23,7 +23,7 @@ const CustomerCusModel = sequelize.define(
     },
     wallet_address:{
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     }
   },
   {
