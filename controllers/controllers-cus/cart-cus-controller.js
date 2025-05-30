@@ -1,6 +1,7 @@
 const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
 const CartCusModel = require("../../models/models-cus/cart-cus-model");
 const ProductModel = require("../../models/models-seller/product-model");
+const { PRODUCT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
 const {
   HTTP_BAD_REQUEST,
   HTTP_NOT_FOUND,
@@ -12,7 +13,7 @@ exports.findCartByCustomer = async (req, res) => {
     const { cus_id } = req.customer;
     let cart = await CartCusModel.findAll({
       where: { customer_id: cus_id },
-      attributes: { exclude: ["product_id"] },
+      attributes: { exclude: ["product_id","customer_id"] },
       include: [
         {
           model: ProductModel,
@@ -22,7 +23,14 @@ exports.findCartByCustomer = async (req, res) => {
             {
               model: ProductMasterBofModel,
               as: "product_master",
-              attributes: ["id", "name_en", "name_th", "name_ch", "price"],
+              attributes: [
+                "id",
+                "name_en",
+                "name_th",
+                "name_ch",
+                "price",
+                "image",
+              ],
             },
           ],
         },
@@ -34,6 +42,18 @@ exports.findCartByCustomer = async (req, res) => {
         msg: "Cart not found",
       });
     }
+
+    // console.log(cart);
+
+    cart = cart.map((gallery) => {
+      if (gallery.product.product_master.image) {
+        gallery.product.product_master.dataValues.image = `${PRODUCT_MEDIA_URL}/${gallery.product.product_master.image}`;
+      } else {
+        gallery.product.product_master.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+      }
+      return gallery;
+    });
+
     const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
     const totalPrice = cart.reduce(
       (sum, item) => sum + item.qty * item.product.product_master.price,
