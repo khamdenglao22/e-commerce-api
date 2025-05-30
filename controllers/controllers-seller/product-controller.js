@@ -79,6 +79,13 @@ exports.createProduct = async (req, res) => {
       }
     }
 
+    if (product_id.length === 0) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "All products already exist for this seller",
+      });
+    }
+
     const newProduct = await ProductModel.bulkCreate(
       product_id.map((id) => ({ seller_id, product_id: id }))
     );
