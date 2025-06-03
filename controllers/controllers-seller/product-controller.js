@@ -102,3 +102,43 @@ exports.createProduct = async (req, res) => {
       .json({ status: HTTP_BAD_REQUEST, msg: error.message });
   }
 };
+
+exports.updateProductStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { product_status } = req.body;
+    const { seller_id } = req.seller;
+
+    const product = await ProductModel.findOne({
+      where: {
+        [Op.and]: [
+          {
+            id: id,
+          },
+          {
+            seller_id: seller_id,
+          },
+        ],
+      },
+    });
+    if (!product) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "Product not found",
+      });
+    }
+
+    product.product_status = product_status;
+    await product.save();
+
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: product,
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};

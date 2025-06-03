@@ -52,6 +52,7 @@ exports.findProductSizeById = async (req, res) => {
     });
   }
 };
+
 exports.createProductSize = async (req, res) => {
   try {
     const existingSize = await ProductSizeModel.findOne({
@@ -95,6 +96,26 @@ exports.updateProductSize = async (req, res) => {
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
       msg: "Product size updated successfully",
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.findAllProductSizesByCategory = async (req, res) => {
+  try {
+    const { category_id } = req.params;
+    const productSizes = await ProductSizeModel.findAll({
+      where: { category_id },
+      order: [["id", "ASC"]],
+    });
+    
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: productSizes,
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({
