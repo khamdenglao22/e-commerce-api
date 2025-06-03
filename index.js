@@ -42,7 +42,6 @@ const productGalleryRoute = require("./routers/routers-bof/product-gallery-bof-r
 const sellerBofRoute = require("./routers/routers-bof/seller-bof-router");
 const productSizeRoute = require("./routers/routers-bof/product-size-router");
 const productColorRoute = require("./routers/routers-bof/product-color-router");
-const productOption = require("./routers/routers-bof/product-option-router");
 
 app.use("/api/v1/brands", brandRoute);
 app.use("/api/v1/category", categoryRoute);
@@ -54,7 +53,6 @@ app.use("/api/v1/product-size", getCurrentUser, productSizeRoute);
 app.use("/api/v1/product-color", getCurrentUser, productColorRoute);
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/login", userAuth);
-app.use("/api/v1/product-option", getCurrentUser, productOption);
 
 // ສ່ວນສຳລັບ API Customer ສໍາລັບສ່ວນຂອງ ລູກຄ້າ
 const {
@@ -66,14 +64,12 @@ const authRoute = require("./routers/routers-cus/auth-cus-router");
 const cartRoute = require("./routers/routers-cus/cart-cus-router");
 const productCustomerRoute = require("./routers/routers-cus/product-cus-router");
 const categoryCustomerRoute = require("./routers/routers-cus/category-cus-router");
-const productOptionCustomerRoute = require("./routers/routers-cus/product-option-cus-router");
 
 app.use("/api/v1/customer/customers", customerRoute);
 app.use("/api/v1/customer/login-customer", authRoute);
 app.use("/api/v1/customer/cart", getCurrentCustomer, cartRoute);
 app.use("/api/v1/customer/products", productCustomerRoute);
 app.use("/api/v1/customer/category", categoryCustomerRoute);
-app.use("/api/v1/customer/product-options", productOptionCustomerRoute);
 
 // ສ່ວນສຳລັບ API Seller
 

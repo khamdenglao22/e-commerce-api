@@ -15,15 +15,22 @@ const ProductModel = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: ProductMasterBofModel,
-        as: "id",
+        model: "product_master",
+        key: "id",
       },
+    },
+    product_status: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
     },
     seller_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      model: SellerModel,
-      as: "id",
+      references: {
+        model: "sellers",
+        key: "id",
+      },
     },
   },
   {

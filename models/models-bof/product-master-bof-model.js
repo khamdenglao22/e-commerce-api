@@ -4,7 +4,7 @@ const CategoryBofModel = require("./category-bof-model");
 const BrandBofModel = require("./brand-bof-model");
 
 const ProductMasterBofModel = sequelize.define(
-  "productsMaster",
+  "ProductMasterBofModel",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -59,7 +59,7 @@ const ProductMasterBofModel = sequelize.define(
     },
   },
   {
-    tableName: "productsMaster",
+    tableName: "product_master",
     timestamps: true,
   }
 );

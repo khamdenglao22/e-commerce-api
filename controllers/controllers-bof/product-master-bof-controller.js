@@ -11,6 +11,9 @@ const ProductMasterBofModel = require("../../models/models-bof/product-master-bo
 const { productSchema } = require("../../schemas/product-schemas");
 const path = require("path");
 const fs = require("fs");
+const ProductColorOptionModel = require("../../models/models-bof/product-color-option-model");
+const ProductSizeOptionModel = require("../../models/models-bof/product-size-option-model");
+const sequelize = require("../../config");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
@@ -138,17 +141,26 @@ exports.findProductById = async (req, res) => {
 };
 
 exports.createProduct = async (req, res) => {
+  let { color_options, size_options } = req.body;
+
+  if (typeof color_options === "string") {
+    color_options = JSON.parse(color_options);
+  }
+  if (typeof size_options === "string") {
+    size_options = JSON.parse(size_options);
+  }
+
   try {
     if (!req.files) {
       delete req.body.image;
     }
-    const { error } = productSchema.validate(req.body);
-    if (error) {
-      return res.status(HTTP_BAD_REQUEST).json({
-        status: HTTP_BAD_REQUEST,
-        msg: error.message,
-      });
-    }
+    // const { error } = productSchema.validate(req.body);
+    // if (error) {
+    //   return res.status(HTTP_BAD_REQUEST).json({
+    //     status: HTTP_BAD_REQUEST,
+    //     msg: error.message,
+    //   });
+    // }
     // Check if product exists
     const existingProduct = await ProductMasterBofModel.findOne({
       where: {
@@ -183,8 +195,33 @@ exports.createProduct = async (req, res) => {
       );
       req.body.image = filename;
     }
+    const transaction = await sequelize.transaction();
 
-    let result = await ProductMasterBofModel.create(req.body);
+    const result = await ProductMasterBofModel.create(req.body, {
+      transaction,
+    });
+
+    if (Array.isArray(color_options) && color_options.length > 0) {
+      await ProductColorOptionModel.bulkCreate(
+        color_options.map((color) => ({
+          product_id: result.id,
+          product_color_id: color,
+        })),
+        { transaction }
+      );
+    }
+
+    if (Array.isArray(size_options) && size_options.length > 0) {
+      await ProductSizeOptionModel.bulkCreate(
+        size_options.map((size) => ({
+          product_id: result.id,
+          product_size_id: size,
+        })),
+        { transaction }
+      );
+    }
+
+    await transaction.commit();
 
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,

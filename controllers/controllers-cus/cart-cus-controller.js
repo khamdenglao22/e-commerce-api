@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
 const CartCusModel = require("../../models/models-cus/cart-cus-model");
 const ProductModel = require("../../models/models-seller/product-model");
@@ -13,7 +14,7 @@ exports.findCartByCustomer = async (req, res) => {
     const { cus_id } = req.customer;
     let cart = await CartCusModel.findAll({
       where: { customer_id: cus_id },
-      attributes: { exclude: ["product_id","customer_id"] },
+      attributes: { exclude: ["product_id", "customer_id"] },
       include: [
         {
           model: ProductModel,
@@ -76,7 +77,8 @@ exports.findCartByCustomer = async (req, res) => {
 exports.addToCart = async (req, res) => {
   try {
     const { cus_id } = req.customer;
-    const { product_id, qty } = req.body;
+    const { product_id, qty, product_size_id, product_color_id, cart_price } =
+      req.body;
     if (!cus_id) {
       return res.status(HTTP_BAD_REQUEST).json({
         status: HTTP_BAD_REQUEST,
@@ -102,8 +104,12 @@ exports.addToCart = async (req, res) => {
     }
     const existingCart = await CartCusModel.findOne({
       where: {
-        customer_id: cus_id,
-        product_id,
+        [Op.and]: [
+          { customer_id: cus_id },
+          { product_id: product_id },
+          { product_size_id: product_size_id },
+          { product_color_id: product_color_id },
+        ],
       },
     });
     if (existingCart) {
@@ -116,11 +122,105 @@ exports.addToCart = async (req, res) => {
         customer_id: cus_id,
         product_id,
         qty,
+        cart_price,
+        product_size_id,
+        product_color_id,
       });
     }
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
       msg: "Product added to cart successfully",
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.updateAddToCart = async (req, res) => {
+  try {
+    const { cus_id } = req.customer;
+    const { id } = req.params;
+
+    const cartItem = await CartCusModel.findOne({
+      where: { id: id, customer_id: cus_id },
+    });
+    if (!cartItem) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "Cart item not found",
+      });
+    }
+    await CartCusModel.update(
+      { qty: cartItem.qty + 1 },
+      { where: { id: cartItem.id } }
+    );
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      msg: "Cart updated successfully",
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.updateRemoveCart = async (req, res) => {
+  try {
+    const { cus_id } = req.customer;
+    const { id } = req.params;
+
+    const cartItem = await CartCusModel.findOne({
+      where: { id: id, customer_id: cus_id },
+    });
+    if (!cartItem) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "Cart item not found",
+      });
+    }
+    if (cartItem.qty >= 1) {
+      await CartCusModel.update(
+        { qty: cartItem.qty - 1 },
+        { where: { id: cartItem.id } }
+      );
+    } else {
+      await CartCusModel.destroy({ where: { id: cartItem.id } });
+    }
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      msg: "Cart updated successfully",
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.deleteCart = async (req, res) => {
+  try {
+    const { cus_id } = req.customer;
+    const { id } = req.params;
+
+    const cartItem = await CartCusModel.findOne({
+      where: { id: id, customer_id: cus_id },
+    });
+    if (!cartItem) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "Cart item not found",
+      });
+    }
+    await CartCusModel.destroy({ where: { id: cartItem.id } });
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      msg: "Cart item deleted successfully",
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({
