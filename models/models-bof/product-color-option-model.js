@@ -34,14 +34,14 @@ const ProductColorOptionModel = sequelize.define(
   }
 );
 // Define associations
-// ProductMasterBofModel.hasMany(ProductColorOptionModel, {
-//   foreignKey: "product_id",
-//   as: "colorOptions",
-// });
+ProductMasterBofModel.hasMany(ProductColorOptionModel, {
+  foreignKey: "product_id",
+  as: "colorOptions",
+});
 
-// ProductColorOptionModel.belongsTo(ProductColorModel, {
-//   foreignKey: "product_color_id",
-//   as: "colors",
-// });
+ProductColorOptionModel.belongsTo(ProductColorModel, {
+  foreignKey: "product_color_id",
+  as: "colors",
+});
 
 module.exports = ProductColorOptionModel;

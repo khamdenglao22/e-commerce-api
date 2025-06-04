@@ -7,6 +7,10 @@ const ProductGalleryBofModel = require("../../models/models-bof/product-gallery-
 const BrandBofModel = require("../../models/models-bof/brand-bof-model");
 const CategoryBofModel = require("../../models/models-bof/category-bof-model");
 const SellerModel = require("../../models/models-seller/seller-model");
+const ProductSizeOptionModel = require("../../models/models-bof/product-size-option-model");
+const ProductSizeModel = require("../../models/models-bof/product-size-model");
+const ProductColorOptionModel = require("../../models/models-bof/product-color-option-model");
+const ProductColorModel = require("../../models/models-bof/product-color-model");
 
 exports.findProduct = async (req, res) => {
   const { size } = req.query;
@@ -19,7 +23,7 @@ exports.findProduct = async (req, res) => {
           as: "product_master",
         },
       ],
-      order: Sequelize.literal("RANDOM()"),
+      order: Sequelize.literal("RAND()"),
     });
 
     products.product_master = products.map((our) => {
@@ -52,24 +56,53 @@ exports.findProductById = async (req, res) => {
         {
           model: ProductMasterBofModel,
           as: "product_master",
+          attributes: { exclude: ["createdAt", "updatedAt"] },
           include: [
             {
               model: ProductGalleryBofModel,
               as: "product_gallery",
+              attributes: { exclude: ["createdAt", "updatedAt"] },
             },
             {
               model: BrandBofModel,
               as: "brand",
+              attributes: { exclude: ["createdAt", "updatedAt"] },
             },
             {
               model: CategoryBofModel,
               as: "category",
+              attributes: { exclude: ["createdAt", "updatedAt"] },
+            },
+            {
+              model: ProductSizeOptionModel,
+              as: "sizeOptions",
+              attributes: ["id"],
+              include: [
+                {
+                  model: ProductSizeModel,
+                  as: "sizes",
+                  attributes: { exclude: ["category_id"] },
+                },
+              ],
+            },
+            {
+              model: ProductColorOptionModel,
+              as: "colorOptions",
+              attributes: ["id"],
+              include: [
+                {
+                  model: ProductColorModel,
+                  as: "colors",
+                  attributes: ["id", "color_code"],
+                },
+              ],
             },
           ],
         },
         {
           model: SellerModel,
           as: "seller",
+          attributes: ["id", "store_name", "email"],
         },
       ],
     });
