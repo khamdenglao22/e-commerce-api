@@ -14,6 +14,9 @@ const fs = require("fs");
 const ProductColorOptionModel = require("../../models/models-bof/product-color-option-model");
 const ProductSizeOptionModel = require("../../models/models-bof/product-size-option-model");
 const sequelize = require("../../config");
+const ProductSizeModel = require("../../models/models-bof/product-size-model");
+const e = require("express");
+const ProductColorModel = require("../../models/models-bof/product-color-model");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
@@ -67,14 +70,41 @@ exports.findAllProduct = async (req, res) => {
       where: { ...filter },
       limit,
       offset,
+      attributes: { exclude: ["createdAt", "updatedAt"] },
       include: [
         {
           model: BrandBofModel,
           as: "brand",
+          attributes: { exclude: ["createdAt", "updatedAt"] },
         },
         {
           model: CategoryBofModel,
           as: "category",
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        },
+        {
+          model: ProductSizeOptionModel,
+          as: "sizeOptions",
+          attributes: ["id"],
+          include: [
+            {
+              model: ProductSizeModel,
+              as: "sizes",
+              attributes: { exclude: ["category_id"] },
+            },
+          ],
+        },
+        {
+          model: ProductColorOptionModel,
+          as: "colorOptions",
+          attributes: ["id"],
+          include: [
+            {
+              model: ProductColorModel,
+              as: "colors",
+              attributes: ["id", "color_code"],
+            },
+          ],
         },
       ],
     })
@@ -106,14 +136,23 @@ exports.findProductById = async (req, res) => {
   const { id } = req.params;
   try {
     let result = await ProductMasterBofModel.findByPk(id, {
+      attributes: { exclude: ["createdAt", "updatedAt"] },
       include: [
         {
-          model: BrandBofModel,
-          as: "brand",
+          model: ProductSizeOptionModel,
+          as: "sizeOptions",
+          attributes: { exclude: ["product_id"] },
+          include: [
+            {
+              model: ProductSizeModel,
+              as: "sizes",
+            },
+          ],
         },
         {
-          model: CategoryBofModel,
-          as: "category",
+          model: ProductColorOptionModel,
+          as: "colorOptions",
+          attributes: { exclude: ["product_id"] },
         },
       ],
     });
@@ -238,16 +277,25 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
+    let { color_options, size_options } = req.body;
+
+    if (typeof color_options === "string") {
+      color_options = JSON.parse(color_options);
+    }
+    if (typeof size_options === "string") {
+      size_options = JSON.parse(size_options);
+    }
+
     if (!req.files) {
       delete req.body.image;
     }
-    const { error } = productSchema.validate(req.body);
-    if (error) {
-      return res.status(HTTP_BAD_REQUEST).json({
-        status: HTTP_BAD_REQUEST,
-        msg: error.message,
-      });
-    }
+    // const { error } = productSchema.validate(req.body);
+    // if (error) {
+    //   return res.status(HTTP_BAD_REQUEST).json({
+    //     status: HTTP_BAD_REQUEST,
+    //     msg: error.message,
+    //   });
+    // }
     let result = await ProductMasterBofModel.findByPk(id);
     if (!result) {
       return res.status(HTTP_NOT_FOUND).json({
@@ -281,9 +329,48 @@ exports.updateProduct = async (req, res) => {
         }
       }
     }
+
+    const transaction = await sequelize.transaction();
+
     await ProductMasterBofModel.update(req.body, {
       where: { id: id },
+      transaction,
     });
+
+    // Delete existing color options
+    await ProductColorOptionModel.destroy({
+      where: { product_id: id },
+      transaction,
+    });
+    if (Array.isArray(color_options) && color_options.length > 0) {
+      // Create new color options
+      await ProductColorOptionModel.bulkCreate(
+        color_options.map((color) => ({
+          product_id: id,
+          product_color_id: color,
+        })),
+        { transaction }
+      );
+    }
+    // Delete existing size options
+    await ProductSizeOptionModel.destroy({
+      where: { product_id: id },
+      transaction,
+    });
+    console.log("size_options", size_options);
+    if (Array.isArray(size_options) && size_options.length > 0) {
+      // Create new size options
+      await ProductSizeOptionModel.bulkCreate(
+        size_options.map((size) => ({
+          product_id: result.id,
+          product_size_id: size,
+        })),
+        { transaction }
+      );
+    }
+
+    await transaction.commit();
+
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
       msg: "Product updated successfully",
