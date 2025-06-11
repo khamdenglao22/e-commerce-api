@@ -112,6 +112,7 @@ exports.addToCart = async (req, res) => {
         ],
       },
     });
+    
     if (existingCart) {
       await CartCusModel.update(
         { qty: existingCart.qty + qty },

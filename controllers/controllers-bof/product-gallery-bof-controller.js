@@ -44,7 +44,7 @@ exports.createProductGallery = async (req, res) => {
       if (!allowFiles.includes(image.mimetype)) {
         return res.status(400).json({
           status: 400,
-          msg: "ຮູບຫ້ອງຄ້າຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
+          msg: "ຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
         });
       }
       const ext = path.extname(image.name);

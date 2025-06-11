@@ -51,9 +51,9 @@ const SellerModel = sequelize.define(
       },
     },
     seller_status: {
-      type: DataTypes.INTEGER(1),
+      type: DataTypes.STRING(50),
       allowNull: false,
-      defaultValue: 1,
+      defaultValue: "pending",//"active","block"
     },
   },
   {
