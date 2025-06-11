@@ -1,4 +1,4 @@
-const SellerModel = require("../../models/models-seller/seller-model");
+const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
 const { SELLER_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
 const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
 const { Op } = require("sequelize");
@@ -17,43 +17,34 @@ const getPagingData = (data, page, limit) => {
   return { totalItems, result, totalPages, currentPage };
 };
 
-exports.findSellerAll = async (req, res) => {
-  const { page, size, store_name, seller_status } = req.query;
+exports.findCustomerAll = async (req, res) => {
+  const { page, size, fullname, customer_status } = req.query;
   const { limit, offset } = getPagination(page, size);
 
   let filter = {};
-  if (store_name) {
+  if (fullname) {
     filter = {
-      store_name: { [Op.like]: `%${store_name}%` },
+      fullname: { [Op.like]: `%${fullname}%` },
     };
   }
 
-  if (seller_status) {
+  if (customer_status) {
     filter = {
       ...filter,
-      seller_status: seller_status,
+      customer_status: customer_status,
     };
   }
 
   try {
-    await SellerModel.findAndCountAll({
+    await CustomerCusModel.findAndCountAll({
       order: [["id", "DESC"]],
+      attributes: { exclude: ["password"] },
       where: { ...filter },
       limit,
       offset,
     })
       .then((data) => {
         const response = getPagingData(data, page, limit);
-        response.result = response.result.map((our) => {
-          if (our.front_document && our.back_certificate) {
-            our.dataValues.front_document = `${SELLER_MEDIA_URL}/${our.front_document}`;
-            our.dataValues.back_certificate = `${SELLER_MEDIA_URL}/${our.back_certificate}`;
-          } else {
-            our.dataValues.front_document = `${BASE_MEDIA_URL}/600x400.svg`;
-            our.dataValues.back_certificate = `${BASE_MEDIA_URL}/600x400.svg`;
-          }
-          return our;
-        });
         res.json(response);
       })
       .catch((err) => {
@@ -68,20 +59,23 @@ exports.findSellerAll = async (req, res) => {
   }
 };
 
-exports.confirmSeller = async (req, res) => {
+exports.updateCustomerStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    let result = await SellerModel.findByPk(id);
+    let result = await CustomerCusModel.findByPk(id);
     if (!result) {
       return res.status(HTTP_BAD_REQUEST).json({
         status: HTTP_BAD_REQUEST,
         msg: "Seller not found",
       });
     }
-    await SellerModel.update({ seller_status: req.body.seller_status }, { where: { id: id } });
+    await CustomerCusModel.update(
+      { customer_status: req.body.customer_status },
+      { where: { id: id } }
+    );
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
-      msg: "Confirm seller successfully",
+      msg: "Confirm customer successfully",
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({

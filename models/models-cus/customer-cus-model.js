@@ -21,10 +21,15 @@ const CustomerCusModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    wallet_address:{
+    wallet_address: {
       type: DataTypes.STRING,
       allowNull: true,
-    }
+    },
+    customer_status: {
+      type: DataTypes.STRING(10),
+      allowNull: false,
+      defaultValue: "active", //"block",
+    },
   },
   {
     tableName: "customers",

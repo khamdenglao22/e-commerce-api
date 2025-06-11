@@ -28,7 +28,7 @@ exports.getCurrentSeller = async (req, res, next) => {
 
     const seller = await SellerModel.findOne({
       where: {
-        [Op.and]: [{ id: user.seller_id }, { seller_status: 2 }],
+        [Op.and]: [{ id: user.seller_id }, { seller_status: "active" }],
       },
     });
     if (!seller) {
