@@ -40,8 +40,6 @@ const userRoute = require("./routers/routers-bof/user-bof-router");
 const userAuth = require("./routers/routers-bof/auth-bof-router");
 const productGalleryRoute = require("./routers/routers-bof/product-gallery-bof-router");
 const sellerBofRoute = require("./routers/routers-bof/seller-bof-router");
-const productSizeRoute = require("./routers/routers-bof/product-size-router");
-const productColorRoute = require("./routers/routers-bof/product-color-router");
 const customerBofRoute = require("./routers/routers-bof/customer-bof-router");
 const countBofRoute = require("./routers/routers-bof/count-bof-router");
 
@@ -51,8 +49,6 @@ app.use("/api/v1/products", productMasterRoute);
 app.use("/api/v1/roles", roleRoute);
 app.use("/api/v1/product-gallery", getCurrentUser, productGalleryRoute);
 app.use("/api/v1/seller", getCurrentUser, sellerBofRoute);
-app.use("/api/v1/product-size", getCurrentUser, productSizeRoute);
-app.use("/api/v1/product-color", getCurrentUser, productColorRoute);
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/login", userAuth);
 app.use("/api/v1/customer", customerBofRoute);

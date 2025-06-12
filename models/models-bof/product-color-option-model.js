@@ -1,6 +1,5 @@
 const sequelize = require("../../config");
 const { DataTypes } = require("sequelize");
-const ProductColorModel = require("./product-color-model");
 const ProductMasterBofModel = require("./product-master-bof-model");
 
 const ProductColorOptionModel = sequelize.define(
@@ -19,13 +18,13 @@ const ProductColorOptionModel = sequelize.define(
         key: "id",
       },
     },
-    product_color_id: {
-      type: DataTypes.INTEGER,
+    color_name: {
+      type: DataTypes.STRING,
       allowNull: false,
-      references: {
-        model: ProductColorModel,
-        key: "id",
-      },
+    },
+    color_code: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
   },
   {
@@ -37,11 +36,6 @@ const ProductColorOptionModel = sequelize.define(
 ProductMasterBofModel.hasMany(ProductColorOptionModel, {
   foreignKey: "product_id",
   as: "colorOptions",
-});
-
-ProductColorOptionModel.belongsTo(ProductColorModel, {
-  foreignKey: "product_color_id",
-  as: "colors",
 });
 
 module.exports = ProductColorOptionModel;
