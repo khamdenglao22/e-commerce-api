@@ -23,11 +23,11 @@ const UserBofModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    role_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: { model: RoleBofModel, key: "id" },
-    },
+    // role_id: {
+    //   type: DataTypes.INTEGER,
+    //   allowNull: false,
+    //   references: { model: RoleBofModel, key: "id" },
+    // },
     user_type: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -47,6 +47,5 @@ const UserBofModel = sequelize.define(
     timestamps: true,
   }
 );
-
 
 module.exports = UserBofModel;
