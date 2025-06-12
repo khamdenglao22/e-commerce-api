@@ -79,7 +79,7 @@ exports.createBrand = async (req, res) => {
 
     if (req.files && req.files.image) {
       let image = req.files.image;
-      let allowFiles = ["image/jpeg", "image/png", "image/jpg"];
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg","image/webp"];
       if (!allowFiles.includes(image.mimetype)) {
         return next({
           status: 400,
@@ -130,7 +130,7 @@ exports.updateBrand = async (req, res) => {
     if (req.files && req.files.image) {
       // Upload new image
       let image = req.files.image;
-      let allowFiles = ["image/jpeg", "image/png", "image/jpg"];
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg","image/webp"];
       if (!allowFiles.includes(image.mimetype)) {
         return next({
           status: 400,

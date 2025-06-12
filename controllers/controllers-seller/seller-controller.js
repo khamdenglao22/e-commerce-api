@@ -85,7 +85,7 @@ exports.createSeller = async (req, res) => {
       const front_document = req.files.front_document;
       const back_certificate = req.files.back_certificate;
 
-      const allowFiles = ["image/jpeg", "image/png", "image/jpg"];
+      const allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
       if (!allowFiles.includes(front_document.mimetype)) {
         return res.status(HTTP_BAD_REQUEST).json({
           status: HTTP_BAD_REQUEST,
