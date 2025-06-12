@@ -14,9 +14,6 @@ const fs = require("fs");
 const ProductColorOptionModel = require("../../models/models-bof/product-color-option-model");
 const ProductSizeOptionModel = require("../../models/models-bof/product-size-option-model");
 const sequelize = require("../../config");
-const ProductSizeModel = require("../../models/models-bof/product-size-model");
-const e = require("express");
-const ProductColorModel = require("../../models/models-bof/product-color-model");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
@@ -85,26 +82,10 @@ exports.findAllProduct = async (req, res) => {
         {
           model: ProductSizeOptionModel,
           as: "sizeOptions",
-          attributes: ["id"],
-          include: [
-            {
-              model: ProductSizeModel,
-              as: "sizes",
-              attributes: { exclude: ["category_id"] },
-            },
-          ],
         },
         {
           model: ProductColorOptionModel,
           as: "colorOptions",
-          attributes: ["id"],
-          include: [
-            {
-              model: ProductColorModel,
-              as: "colors",
-              attributes: ["id", "color_code"],
-            },
-          ],
         },
       ],
     })
@@ -142,12 +123,6 @@ exports.findProductById = async (req, res) => {
           model: ProductSizeOptionModel,
           as: "sizeOptions",
           attributes: { exclude: ["product_id"] },
-          include: [
-            {
-              model: ProductSizeModel,
-              as: "sizes",
-            },
-          ],
         },
         {
           model: ProductColorOptionModel,
@@ -188,6 +163,9 @@ exports.createProduct = async (req, res) => {
   if (typeof size_options === "string") {
     size_options = JSON.parse(size_options);
   }
+
+  // console.log("color_options>>>>>>>>>>>>>>>>>>>", typeof color_options);
+  // console.log("size_options>>>>>>>>>>>>>>>>>>>", size_options);
 
   try {
     if (!req.files) {
@@ -244,7 +222,8 @@ exports.createProduct = async (req, res) => {
       await ProductColorOptionModel.bulkCreate(
         color_options.map((color) => ({
           product_id: result.id,
-          product_color_id: color,
+          color_name: color.color_name,
+          color_code: color.color_code,
         })),
         { transaction }
       );
@@ -254,7 +233,8 @@ exports.createProduct = async (req, res) => {
       await ProductSizeOptionModel.bulkCreate(
         size_options.map((size) => ({
           product_id: result.id,
-          product_size_id: size,
+          product_size: size.product_size,
+          product_size_price: size.product_size_price,
         })),
         { transaction }
       );
@@ -333,28 +313,29 @@ exports.updateProduct = async (req, res) => {
     const transaction = await sequelize.transaction();
 
     await ProductMasterBofModel.update(req.body, {
-      where: { id: id },
+      where: { id: result.id },
       transaction,
     });
 
     // Delete existing color options
     await ProductColorOptionModel.destroy({
-      where: { product_id: id },
+      where: { product_id: result.id },
       transaction,
     });
     if (Array.isArray(color_options) && color_options.length > 0) {
       // Create new color options
       await ProductColorOptionModel.bulkCreate(
         color_options.map((color) => ({
-          product_id: id,
-          product_color_id: color,
+          product_id: result.id,
+          color_name: color.color_name,
+          color_code: color.color_code,
         })),
         { transaction }
       );
     }
     // Delete existing size options
     await ProductSizeOptionModel.destroy({
-      where: { product_id: id },
+      where: { product_id: result.id },
       transaction,
     });
     console.log("size_options", size_options);
@@ -363,7 +344,8 @@ exports.updateProduct = async (req, res) => {
       await ProductSizeOptionModel.bulkCreate(
         size_options.map((size) => ({
           product_id: result.id,
-          product_size_id: size,
+          product_size: size.product_size,
+          product_size_price: size.product_size_price,
         })),
         { transaction }
       );

@@ -2,8 +2,8 @@ const sequelize = require("../../config");
 const { DataTypes } = require("sequelize");
 const CustomerCusModel = require("./customer-cus-model");
 const ProductModel = require("../models-seller/product-model");
-const ProductSizeModel = require("../models-bof/product-size-model");
-const ProductColorModel = require("../models-bof/product-color-model");
+const ProductSizeOptionModel = require("../models-bof/product-size-option-model");
+const ProductColorOptionModel = require("../models-bof/product-color-option-model");
 
 const CartCusModel = sequelize.define(
   "CartCus",
@@ -38,7 +38,7 @@ const CartCusModel = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: ProductSizeModel,
+        model: ProductSizeOptionModel,
         key: "id",
       },
     },
@@ -47,7 +47,7 @@ const CartCusModel = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: ProductColorModel,
+        model: ProductColorOptionModel,
         key: "id",
       },
     },

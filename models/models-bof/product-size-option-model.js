@@ -1,7 +1,6 @@
 const sequelize = require("../../config");
 const { DataTypes } = require("sequelize");
 const ProductMasterBofModel = require("./product-master-bof-model");
-const ProductSizeModel = require("./product-size-model");
 
 const ProductSizeOptionModel = sequelize.define(
   "ProductSizeOption",
@@ -19,13 +18,13 @@ const ProductSizeOptionModel = sequelize.define(
         key: "id",
       },
     },
-    product_size_id: {
-      type: DataTypes.INTEGER,
+    product_size: {
+      type: DataTypes.STRING,
       allowNull: false,
-      references: {
-        model: ProductSizeModel,
-        key: "id",
-      },
+    },
+    product_size_price: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
     },
   },
   {
@@ -38,10 +37,6 @@ const ProductSizeOptionModel = sequelize.define(
 ProductMasterBofModel.hasMany(ProductSizeOptionModel, {
   foreignKey: "product_id",
   as: "sizeOptions",
-});
-ProductSizeOptionModel.belongsTo(ProductSizeModel, {
-  foreignKey: "product_size_id",
-  as: "sizes",
 });
 
 module.exports = ProductSizeOptionModel;

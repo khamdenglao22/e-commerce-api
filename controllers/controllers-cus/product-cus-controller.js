@@ -8,9 +8,7 @@ const BrandBofModel = require("../../models/models-bof/brand-bof-model");
 const CategoryBofModel = require("../../models/models-bof/category-bof-model");
 const SellerModel = require("../../models/models-seller/seller-model");
 const ProductSizeOptionModel = require("../../models/models-bof/product-size-option-model");
-const ProductSizeModel = require("../../models/models-bof/product-size-model");
 const ProductColorOptionModel = require("../../models/models-bof/product-color-option-model");
-const ProductColorModel = require("../../models/models-bof/product-color-model");
 
 exports.findProduct = async (req, res) => {
   const { size } = req.query;
@@ -76,26 +74,10 @@ exports.findProductById = async (req, res) => {
             {
               model: ProductSizeOptionModel,
               as: "sizeOptions",
-              attributes: ["id"],
-              include: [
-                {
-                  model: ProductSizeModel,
-                  as: "sizes",
-                  attributes: { exclude: ["category_id"] },
-                },
-              ],
             },
             {
               model: ProductColorOptionModel,
               as: "colorOptions",
-              attributes: ["id"],
-              include: [
-                {
-                  model: ProductColorModel,
-                  as: "colors",
-                  attributes: ["id", "color_code"],
-                },
-              ],
             },
           ],
         },
