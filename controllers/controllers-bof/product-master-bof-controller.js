@@ -198,11 +198,11 @@ exports.createProduct = async (req, res) => {
     // Upload image
     if (req.files && req.files.image) {
       let image = req.files.image;
-      let allowFiles = ["image/jpeg", "image/png", "image/jpg"];
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
       if (!allowFiles.includes(image.mimetype)) {
         return next({
           status: 400,
-          msg: "ຮູບຫ້ອງຄ້າຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
+          msg: "ຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
         });
       }
       const ext = path.extname(image.name);
@@ -285,11 +285,11 @@ exports.updateProduct = async (req, res) => {
     }
     if (req.files && req.files.image) {
       let image = req.files.image;
-      let allowFiles = ["image/jpeg", "image/png", "image/jpg"];
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
       if (!allowFiles.includes(image.mimetype)) {
         return next({
           status: 400,
-          msg: "ຮູບຫ້ອງຄ້າຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
+          msg: "ຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
         });
       }
       const ext = path.extname(image.name);

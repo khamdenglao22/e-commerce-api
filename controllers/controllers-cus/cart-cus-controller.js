@@ -104,15 +104,16 @@ exports.addToCart = async (req, res) => {
     }
     const existingCart = await CartCusModel.findOne({
       where: {
-        [Op.and]: [
-          { customer_id: cus_id },
-          { product_id: product_id },
+        [Op.or]: [
+          {
+            [Op.and]: [{ product_id: product_id }, { customer_id: cus_id }],
+          },
           { product_size_id: product_size_id },
           { product_color_id: product_color_id },
         ],
       },
     });
-    
+
     if (existingCart) {
       await CartCusModel.update(
         { qty: existingCart.qty + qty },

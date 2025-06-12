@@ -23,7 +23,7 @@ exports.createProductGallery = async (req, res) => {
       for (let i = 0; i < req.files.image.length; i++) {
         console.log("req.files[i] = ", req.files.image[i]);
         let image = req.files.image[i];
-        let allowFiles = ["image/jpeg", "image/png", "image/jpg"];
+        let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
         if (!allowFiles.includes(image.mimetype)) {
           return res.status(400).json({
             status: 400,
@@ -40,7 +40,7 @@ exports.createProductGallery = async (req, res) => {
       }
     } else {
       let image = req.files.image;
-      let allowFiles = ["image/jpeg", "image/png", "image/jpg"];
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
       if (!allowFiles.includes(image.mimetype)) {
         return res.status(400).json({
           status: 400,
