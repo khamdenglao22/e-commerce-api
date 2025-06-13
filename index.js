@@ -65,7 +65,7 @@ const cartRoute = require("./routers/routers-cus/cart-cus-router");
 const productCustomerRoute = require("./routers/routers-cus/product-cus-router");
 const categoryCustomerRoute = require("./routers/routers-cus/category-cus-router");
 
-app.use("/api/v1/customer/customers", customerRoute);
+app.use("/api/v1/customer/register", customerRoute);
 app.use("/api/v1/customer/login-customer", authRoute);
 app.use("/api/v1/customer/cart", getCurrentCustomer, cartRoute);
 app.use("/api/v1/customer/products", productCustomerRoute);
