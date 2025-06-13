@@ -164,9 +164,6 @@ exports.createProduct = async (req, res) => {
     size_options = JSON.parse(size_options);
   }
 
-  // console.log("color_options>>>>>>>>>>>>>>>>>>>", typeof color_options);
-  // console.log("size_options>>>>>>>>>>>>>>>>>>>", size_options);
-
   try {
     if (!req.files) {
       delete req.body.image;

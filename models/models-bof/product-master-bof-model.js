@@ -35,6 +35,18 @@ const ProductMasterBofModel = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: false,
     },
+    long_description_en: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    long_description_th: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    long_description_ch: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     price: {
       type: DataTypes.DOUBLE,
       allowNull: false,
