@@ -1,8 +1,14 @@
+const BrandBofModel = require("../../models/models-bof/brand-bof-model");
+const CategoryBofModel = require("../../models/models-bof/category-bof-model");
 const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
 const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
 const ProductModel = require("../../models/models-seller/product-model");
 const SellerModel = require("../../models/models-seller/seller-model");
-const { SELLER_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
+const {
+  SELLER_MEDIA_URL,
+  BASE_MEDIA_URL,
+  PRODUCT_MEDIA_URL,
+} = require("../../utils/constant");
 const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
 const { Op } = require("sequelize");
 
@@ -114,6 +120,18 @@ exports.findSellerById = async (req, res) => {
               model: ProductMasterBofModel,
               as: "product_master",
               attributes: { exclude: ["createdAt", "updatedAt"] },
+              include: [
+                {
+                  model: CategoryBofModel,
+                  as: "category",
+                  attributes: { exclude: ["createdAt", "updatedAt"] },
+                },
+                {
+                  model: BrandBofModel,
+                  as: "brand",
+                  attributes: { exclude: ["createdAt", "updatedAt"] },
+                },
+              ],
             },
           ],
         },
@@ -137,6 +155,16 @@ exports.findSellerById = async (req, res) => {
     } else {
       result.dataValues.front_document = `${BASE_MEDIA_URL}/600x400.svg`;
     }
+
+    result.products = result.products.map((our) => {
+      if (our.product_master.image) {
+        our.product_master.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.product_master.image}`;
+      } else {
+        our.product_master.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+      }
+      return our;
+    });
+
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
       data: result,
