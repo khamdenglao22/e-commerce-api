@@ -20,9 +20,9 @@ const ProductModel = sequelize.define(
       },
     },
     product_status: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.STRING(10),
       allowNull: false,
-      defaultValue: true,
+      defaultValue: "active",
     },
     seller_id: {
       type: DataTypes.INTEGER,
@@ -47,6 +47,11 @@ ProductModel.belongsTo(ProductMasterBofModel, {
 ProductModel.belongsTo(SellerModel, {
   foreignKey: "seller_id",
   as: "seller",
+});
+
+SellerModel.hasMany(ProductModel, {
+  foreignKey: "seller_id",
+  as: "products",
 });
 
 module.exports = ProductModel;

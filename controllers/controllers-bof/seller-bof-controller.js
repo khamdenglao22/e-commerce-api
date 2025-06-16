@@ -1,3 +1,6 @@
+const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
+const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
+const ProductModel = require("../../models/models-seller/product-model");
 const SellerModel = require("../../models/models-seller/seller-model");
 const { SELLER_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
 const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
@@ -78,10 +81,65 @@ exports.confirmSeller = async (req, res) => {
         msg: "Seller not found",
       });
     }
-    await SellerModel.update({ seller_status: req.body.seller_status }, { where: { id: id } });
+    await SellerModel.update(
+      { seller_status: req.body.seller_status },
+      { where: { id: id } }
+    );
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
       msg: "Confirm seller successfully",
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.findSellerById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    let result = await SellerModel.findByPk(id, {
+      include: [
+        {
+          model: CustomerCusModel,
+          as: "customer",
+        },
+        {
+          model: ProductModel,
+          as: "products",
+          include: [
+            {
+              model: ProductMasterBofModel,
+              as: "product_master",
+              attributes: { exclude: ["createdAt", "updatedAt"] },
+            },
+          ],
+        },
+      ],
+    });
+    let productOfSeller = await ProductModel.count({
+      where: { seller_id: id },
+    });
+
+    result.dataValues.productTotalQty = productOfSeller;
+
+    if (!result) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "Seller not found",
+      });
+    }
+    if (result.front_document && result.back_certificate) {
+      result.dataValues.front_document = `${SELLER_MEDIA_URL}/${result.front_document}`;
+      result.dataValues.back_certificate = `${SELLER_MEDIA_URL}/${result.back_certificate}`;
+    } else {
+      result.dataValues.front_document = `${BASE_MEDIA_URL}/600x400.svg`;
+    }
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: result,
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({

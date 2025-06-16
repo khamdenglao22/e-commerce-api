@@ -142,3 +142,80 @@ exports.updateProductStatus = async (req, res) => {
     });
   }
 };
+
+exports.findAllProductMaster = async (req, res) => {
+  const { page, size, p_name, category_id, brand_id } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  const { seller_id } = req.seller;
+
+  let filter = {};
+  if (p_name) {
+    filter = {
+      [Op.or]: [
+        { name_en: { [Op.like]: `%${p_name}%` } },
+        { name_th: { [Op.like]: `%${p_name}%` } },
+        { name_ch: { [Op.like]: `%${p_name}%` } },
+      ],
+    };
+  }
+  // console.log("filter", filter);
+
+  if (category_id && !brand_id) {
+    filter = {
+      [Op.or]: [{ category_id: category_id }],
+    };
+  } else if (!category_id && brand_id) {
+    filter = {
+      [Op.and]: [{ brand_id: brand_id }],
+    };
+  } else if (category_id && brand_id) {
+    filter = {
+      [Op.and]: [{ category_id: category_id }, { brand_id: brand_id }],
+    };
+  }
+
+  // console.log("filter", filter);
+
+  try {
+    let productMaster = await ProductMasterBofModel.findAndCountAll({
+      order: [["id", "DESC"]],
+      where: { ...filter },
+      limit,
+      offset,
+      attributes: { exclude: ["createdAt", "updatedAt"] },
+      include: [
+        {
+          model: BrandBofModel,
+          as: "brand",
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        },
+        {
+          model: CategoryBofModel,
+          as: "category",
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        },
+      ],
+    });
+    // .then((data) => {
+    //   const response = getPagingData(data, page, limit);
+    //   response.result = response.result.map((our) => {
+    //     if (our.image) {
+    //       our.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.image}`;
+    //     } else {
+    //       our.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+    //     }
+    //     return our;
+    //   });
+    //   res.json(response);
+    // })
+    // .catch((err) => {
+    //   res
+    //     .status(HTTP_BAD_REQUEST)
+    //     .json({ status: HTTP_BAD_REQUEST, msg: err.message });
+    // });
+  } catch (error) {
+    res
+      .status(HTTP_BAD_REQUEST)
+      .json({ status: HTTP_BAD_REQUEST, msg: error.message });
+  }
+};
