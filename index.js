@@ -79,7 +79,7 @@ const {
   getCurrentSeller,
 } = require("./controllers/controllers-seller/auth-seller-controller");
 
-app.use("/api/v1/customer/seller", getCurrentCustomer, sellerRoute);
-app.use("/api/v1/customer/seller-products", getCurrentSeller, productRoute);
+app.use("/api/v1/sell/info", sellerRoute);
+app.use("/api/v1/sell/products", getCurrentSeller, productRoute);
 
 app.listen(port, () => console.log(`listening on http://localhost:${port}`));

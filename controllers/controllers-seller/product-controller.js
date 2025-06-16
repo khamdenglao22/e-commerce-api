@@ -7,6 +7,8 @@ const {
   HTTP_BAD_REQUEST,
   HTTP_SUCCESS,
 } = require("../../utils/http_status");
+const BrandBofModel = require("../../models/models-bof/brand-bof-model");
+const CategoryBofModel = require("../../models/models-bof/category-bof-model");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
@@ -196,18 +198,36 @@ exports.findAllProductMaster = async (req, res) => {
         },
       ],
     });
+
+    const products = await ProductModel.findAll({
+      where: {
+        seller_id: seller_id,
+      },
+      attributes: ["product_id"],
+    });
     // .then((data) => {
-    //   const response = getPagingData(data, page, limit);
-    //   response.result = response.result.map((our) => {
-    //     if (our.image) {
-    //       our.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.image}`;
-    //     } else {
-    //       our.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
-    //     }
-    //     return our;
-    //   });
-    //   res.json(response);
-    // })
+    const response = getPagingData(productMaster, page, limit);
+    response.result = response.result.map((our) => {
+      if (our.image) {
+        our.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.image}`;
+      } else {
+        our.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+      }
+      return our;
+    });
+    response.result = response.result.map((our) => {
+      // check productMaster existing in product
+      const exists = products.some((p) => p.product_id === our.id);
+      if (exists) {
+        our.dataValues.product_exist = exists;
+      } else {
+        our.dataValues.product_exist = exists;
+      }
+      return our;
+    });
+
+    res.json(response);
+
     // .catch((err) => {
     //   res
     //     .status(HTTP_BAD_REQUEST)
