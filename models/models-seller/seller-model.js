@@ -53,7 +53,7 @@ const SellerModel = sequelize.define(
     seller_status: {
       type: DataTypes.STRING(50),
       allowNull: false,
-      defaultValue: "pending",//"active","block"
+      defaultValue: "pending", //"active","block"
     },
   },
   {
@@ -61,5 +61,10 @@ const SellerModel = sequelize.define(
     timestamps: true,
   }
 );
+
+SellerModel.belongsTo(CustomerCusModel, {
+  foreignKey: "customer_id",
+  as: "customer",
+});
 
 module.exports = SellerModel;
