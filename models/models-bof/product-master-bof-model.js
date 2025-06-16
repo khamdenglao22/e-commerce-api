@@ -58,12 +58,12 @@ const ProductMasterBofModel = sequelize.define(
     category_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      // references: { model: CategoryBofModel, key: "id" },
+      references: { model: CategoryBofModel, key: "id" },
     },
     brand_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      // references: { model: BrandBofModel, key: "id" },
+      references: { model: BrandBofModel, key: "id" },
     },
     p_status: {
       type: DataTypes.BOOLEAN,
