@@ -24,6 +24,7 @@ const getPagination = (page, size) => {
 
 const getPagingData = (data, page, limit) => {
   const { count: totalItems, rows: result } = data;
+  console.log("totalItems", totalItems);
   const currentPage = page ? +page : 0;
   const totalPages = Math.ceil(totalItems / limit);
   return { totalItems, result, totalPages, currentPage };
@@ -79,14 +80,7 @@ exports.findAllProduct = async (req, res) => {
           as: "category",
           attributes: { exclude: ["createdAt", "updatedAt"] },
         },
-        {
-          model: ProductSizeOptionModel,
-          as: "sizeOptions",
-        },
-        {
-          model: ProductColorOptionModel,
-          as: "colorOptions",
-        },
+        
       ],
     })
       .then((data) => {
@@ -335,7 +329,7 @@ exports.updateProduct = async (req, res) => {
       where: { product_id: result.id },
       transaction,
     });
-    console.log("size_options", size_options);
+    // console.log("size_options", size_options);
     if (Array.isArray(size_options) && size_options.length > 0) {
       // Create new size options
       await ProductSizeOptionModel.bulkCreate(

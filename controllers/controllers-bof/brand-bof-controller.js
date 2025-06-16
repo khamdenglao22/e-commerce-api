@@ -10,11 +10,19 @@ const path = require("path");
 const fs = require("fs");
 const sequelize = require("../../config");
 const { brandSchema } = require("../../schemas/brand-schemas");
+const { Op, Model } = require("sequelize");
+const CategoryBofModel = require("../../models/models-bof/category-bof-model");
 
 exports.findAllBrand = async (req, res) => {
   try {
     let result = await BrandBofModel.findAll({
       order: [["id", "DESC"]],
+      attributes: { exclude: ["category_id", "createdAt", "updatedAt"] },
+      include: {
+        model: CategoryBofModel,
+        as: "category",
+        attributes: { exclude: ["createdAt", "updatedAt"] },
+      },
     });
     result = result.map((row) => {
       if (row.image) {
@@ -79,17 +87,33 @@ exports.createBrand = async (req, res) => {
 
     if (req.files && req.files.image) {
       let image = req.files.image;
-      let allowFiles = ["image/jpeg", "image/png", "image/jpg","image/webp"];
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
       if (!allowFiles.includes(image.mimetype)) {
         return next({
           status: 400,
-          msg: "ຮູບຫ້ອງຄ້າຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
+          msg: "ຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
         });
       }
       const ext = path.extname(image.name);
       const filename = Date.now() + ext;
       image.mv(path.join(__dirname, `../../uploads/images/brands/${filename}`));
       req.body.image = filename;
+    }
+
+    const checkExist = await BrandBofModel.findOne({
+      where: {
+        [Op.and]: [
+          { name_en: req.body.name_en },
+          { category_id: req.body.category_id },
+        ],
+      },
+    });
+
+    if (checkExist) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "Brand already exists",
+      });
     }
 
     const newBrand = await BrandBofModel.create(req.body);
@@ -130,7 +154,7 @@ exports.updateBrand = async (req, res) => {
     if (req.files && req.files.image) {
       // Upload new image
       let image = req.files.image;
-      let allowFiles = ["image/jpeg", "image/png", "image/jpg","image/webp"];
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
       if (!allowFiles.includes(image.mimetype)) {
         return next({
           status: 400,
@@ -141,6 +165,27 @@ exports.updateBrand = async (req, res) => {
       const filename = Date.now() + ext;
       image.mv(path.join(__dirname, `../../uploads/images/brands/${filename}`));
       req.body.image = filename;
+    }
+
+    if (
+      req.body.category_id !== result.category_id &&
+      result.name_en !== req.body.name_en
+    ) {
+      const checkExist = await BrandBofModel.findOne({
+        where: {
+          [Op.and]: [
+            { name_en: req.body.name_en },
+            { category_id: req.body.category_id },
+          ],
+        },
+      });
+
+      if (checkExist) {
+        return res.status(HTTP_BAD_REQUEST).json({
+          status: HTTP_BAD_REQUEST,
+          msg: "Brand already exists",
+        });
+      }
     }
 
     // start transaction
@@ -213,6 +258,31 @@ exports.deleteBrand = async (req, res) => {
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
       msg: "Brand deleted successfully",
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.findBrandByCategoryId = async (req, res) => {
+  try {
+    const { category_id } = req.params;
+    let result = await BrandBofModel.findAll({
+      where: { category_id: category_id },
+      order: [["id", "DESC"]],
+    });
+    if (!result) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "Brand not found",
+      });
+    }
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: result,
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({

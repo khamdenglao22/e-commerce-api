@@ -5,4 +5,5 @@ exports.brandSchema = Joi.object({
   name_th: Joi.string().required(),
   name_ch: Joi.string().required(),
   image: Joi.string().allow(null),
+  category_id: Joi.number(),
 });
