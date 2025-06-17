@@ -1,3 +1,4 @@
+const { Sequelize } = require("sequelize");
 const CategoryBofModel = require("../../models/models-bof/category-bof-model");
 const { categorySchema } = require("../../schemas/category-schemas");
 const {
@@ -17,7 +18,15 @@ const path = require("path");
 exports.findAllCategory = async (req, res) => {
   try {
     let result = await CategoryBofModel.findAll({
-      order: [["id", "DESC"]],
+      order: [
+        [
+          Sequelize.literal(
+            "CASE WHEN name_en = 'not category' THEN 0 ELSE 1 END"
+          ),
+          "ASC",
+        ],
+        ["name_en", "ASC"],
+      ],
     });
     result = result.map((row) => {
       if (row.image) {
@@ -81,7 +90,7 @@ exports.createCategory = async (req, res) => {
 
     if (req.files && req.files.image) {
       let image = req.files.image;
-      let allowFiles = ["image/jpeg", "image/png", "image/jpg","image/webp"];
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
       if (!allowFiles.includes(image.mimetype)) {
         return next({
           status: 400,
@@ -132,7 +141,7 @@ exports.updateCategory = async (req, res) => {
     }
     if (req.files && req.files.image) {
       let image = req.files.image;
-      let allowFiles = ["image/jpeg", "image/png", "image/jpg","image/webp"];
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
       if (!allowFiles.includes(image.mimetype)) {
         return next({
           status: 400,

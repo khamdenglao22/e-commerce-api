@@ -10,19 +10,20 @@ const path = require("path");
 const fs = require("fs");
 const sequelize = require("../../config");
 const { brandSchema } = require("../../schemas/brand-schemas");
-const { Op, Model } = require("sequelize");
+const { Op, Model, Sequelize } = require("sequelize");
 const CategoryBofModel = require("../../models/models-bof/category-bof-model");
 
 exports.findAllBrand = async (req, res) => {
   try {
     let result = await BrandBofModel.findAll({
-      order: [["id", "DESC"]],
-      attributes: { exclude: ["category_id", "createdAt", "updatedAt"] },
-      include: {
-        model: CategoryBofModel,
-        as: "category",
-        attributes: { exclude: ["createdAt", "updatedAt"] },
-      },
+      order: [
+        [
+          Sequelize.literal("CASE WHEN name_en = 'not brand' THEN 0 ELSE 1 END"),
+          "ASC",
+        ],
+        ["name_en", "ASC"],
+      ],
+      attributes: { exclude: ["createdAt", "updatedAt"] },
     });
     result = result.map((row) => {
       if (row.image) {
@@ -101,12 +102,7 @@ exports.createBrand = async (req, res) => {
     }
 
     const checkExist = await BrandBofModel.findOne({
-      where: {
-        [Op.and]: [
-          { name_en: req.body.name_en },
-          { category_id: req.body.category_id },
-        ],
-      },
+      where: { name_en: req.body.name_en },
     });
 
     if (checkExist) {
@@ -167,17 +163,9 @@ exports.updateBrand = async (req, res) => {
       req.body.image = filename;
     }
 
-    if (
-      req.body.category_id !== result.category_id &&
-      result.name_en !== req.body.name_en
-    ) {
+    if (result.name_en !== req.body.name_en) {
       const checkExist = await BrandBofModel.findOne({
-        where: {
-          [Op.and]: [
-            { name_en: req.body.name_en },
-            { category_id: req.body.category_id },
-          ],
-        },
+        where: { name_en: req.body.name_en },
       });
 
       if (checkExist) {
@@ -267,27 +255,27 @@ exports.deleteBrand = async (req, res) => {
   }
 };
 
-exports.findBrandByCategoryId = async (req, res) => {
-  try {
-    const { category_id } = req.params;
-    let result = await BrandBofModel.findAll({
-      where: { category_id: category_id },
-      order: [["id", "DESC"]],
-    });
-    if (!result) {
-      return res.status(HTTP_NOT_FOUND).json({
-        status: HTTP_NOT_FOUND,
-        msg: "Brand not found",
-      });
-    }
-    res.status(HTTP_SUCCESS).json({
-      status: HTTP_SUCCESS,
-      data: result,
-    });
-  } catch (error) {
-    res.status(HTTP_BAD_REQUEST).json({
-      status: HTTP_BAD_REQUEST,
-      msg: error.message,
-    });
-  }
-};
+// exports.findBrandByCategoryId = async (req, res) => {
+//   try {
+//     const { category_id } = req.params;
+//     let result = await BrandBofModel.findAll({
+//       where: { category_id: category_id },
+//       order: [["id", "DESC"]],
+//     });
+//     if (!result) {
+//       return res.status(HTTP_NOT_FOUND).json({
+//         status: HTTP_NOT_FOUND,
+//         msg: "Brand not found",
+//       });
+//     }
+//     res.status(HTTP_SUCCESS).json({
+//       status: HTTP_SUCCESS,
+//       data: result,
+//     });
+//   } catch (error) {
+//     res.status(HTTP_BAD_REQUEST).json({
+//       status: HTTP_BAD_REQUEST,
+//       msg: error.message,
+//     });
+//   }
+// };
