@@ -80,7 +80,6 @@ exports.findAllProduct = async (req, res) => {
           as: "category",
           attributes: { exclude: ["createdAt", "updatedAt"] },
         },
-        
       ],
     })
       .then((data) => {
@@ -122,6 +121,14 @@ exports.findProductById = async (req, res) => {
           model: ProductColorOptionModel,
           as: "colorOptions",
           attributes: { exclude: ["product_id"] },
+        },
+        {
+          model: CategoryBofModel,
+          as: "category",
+        },
+        {
+          model: BrandBofModel,
+          as: "brand",
         },
       ],
     });

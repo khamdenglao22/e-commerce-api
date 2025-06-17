@@ -25,21 +25,11 @@ const BrandBofModel = sequelize.define(
     image: {
       type: DataTypes.STRING,
     },
-    category_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: { model: CategoryBofModel, key: "id" },
-    },
   },
   {
     tableName: "brands",
     timestamps: true,
   }
 );
-
-BrandBofModel.belongsTo(CategoryBofModel, {
-  foreignKey: "category_id",
-  as: "category",
-});
 
 module.exports = BrandBofModel;
