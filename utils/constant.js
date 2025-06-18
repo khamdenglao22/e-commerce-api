@@ -3,5 +3,6 @@ exports.BRAND_MEDIA_URL = `${BASE_URL}/static/images/brands`;
 exports.CATEGORY_MEDIA_URL = `${BASE_URL}/static/images/categories`;
 exports.PRODUCT_MEDIA_URL = `${BASE_URL}/static/images/products`;
 exports.SELLER_MEDIA_URL = `${BASE_URL}/static/images/sellers`;
+exports.DEPOSIT_MEDIA_URL = `${BASE_URL}/static/images/deposit`;
 exports.BASE_MEDIA_URL = `${BASE_URL}/static`;
 
