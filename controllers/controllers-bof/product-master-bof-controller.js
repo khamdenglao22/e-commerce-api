@@ -18,13 +18,11 @@ const sequelize = require("../../config");
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
   const offset = page && page > 0 ? (page - 1) * limit : 0;
-  //   console.log("+size", +size, "offset", offset);
   return { limit, offset };
 };
 
 const getPagingData = (data, page, limit) => {
   const { count: totalItems, rows: result } = data;
-  console.log("totalItems", totalItems);
   const currentPage = page ? +page : 0;
   const totalPages = Math.ceil(totalItems / limit);
   return { totalItems, result, totalPages, currentPage };

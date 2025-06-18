@@ -1,0 +1,137 @@
+const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
+const DepositCusModel = require("../../models/models-cus/deposit-cus-model");
+const WalletCusModel = require("../../models/models-cus/wallet-cus-model");
+const { DEPOSIT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
+const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
+
+const getPagination = (page, size) => {
+  const limit = size ? +size : 10;
+  const offset = page && page > 0 ? (page - 1) * limit : 0;
+  return { limit, offset };
+};
+
+const getPagingData = (data, page, limit) => {
+  const { count: totalItems, rows: result } = data;
+  const currentPage = page ? +page : 0;
+  const totalPages = Math.ceil(totalItems / limit);
+  return { totalItems, result, totalPages, currentPage };
+};
+
+exports.findAllDepositBof = async (req, res) => {
+  const { page, size, deposit_status } = req.query;
+  const { limit, offset } = getPagination(page, size);
+
+  let filter = {};
+  if (deposit_status) {
+    filter = {
+      deposit_status: deposit_status,
+    };
+  }
+
+  try {
+    let deposit = await DepositCusModel.findAndCountAll({
+      order: [["id", "DESC"]],
+      where: { ...filter },
+      limit,
+      offset,
+    });
+
+    const response = getPagingData(deposit, page, limit);
+    response.result = response.result.map((our) => {
+      if (our.image) {
+        our.dataValues.image = `${DEPOSIT_MEDIA_URL}/${our.image}`;
+      } else {
+        our.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+      }
+      return our;
+    });
+    res.json(response);
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.findDepositByIdBof = async (req, res) => {
+  const { id } = req.params;
+  try {
+    let deposit = await DepositCusModel.findOne({
+      where: {
+        id,
+      },
+      include: [
+        {
+          model: CustomerCusModel,
+          as: "customer",
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        },
+      ],
+    });
+    if (!deposit) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "Deposit not found",
+      });
+    }
+
+    if (deposit.image) {
+      deposit.dataValues.image = `${DEPOSIT_MEDIA_URL}/${deposit.image}`;
+    } else {
+      deposit.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+    }
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: deposit,
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.confirmDepositBof = async (req, res) => {
+  const { id } = req.params;
+  const { user_id } = req.user;
+  try {
+    let deposit = await DepositCusModel.findOne({
+      where: {
+        id,
+      },
+    });
+    if (!deposit) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "Deposit not found",
+      });
+    }
+
+    deposit.deposit_status = req.body.deposit_status;
+    deposit.user_id = user_id;
+
+    await deposit.save();
+    if (deposit.deposit_status === "approved") {
+      await WalletCusModel.create({
+        balance: deposit.amount,
+        bonus: 0,
+        wallet_type: "deposit",
+        customer_id: deposit.customer_id,
+        user_id: user_id,
+        deposit_id: deposit.id,
+      });
+    }
+
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: deposit,
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
