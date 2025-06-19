@@ -43,6 +43,7 @@ const sellerBofRoute = require("./routers/routers-bof/seller-bof-router");
 const customerBofRoute = require("./routers/routers-bof/customer-bof-router");
 const countBofRoute = require("./routers/routers-bof/count-bof-router");
 const depositBofRoute = require("./routers/routers-bof/deposit-bof-router");
+const companyRoute = require("./routers/routers-bof/company-router");
 
 app.use("/api/v1/brands", brandRoute);
 app.use("/api/v1/category", categoryRoute);
@@ -55,6 +56,7 @@ app.use("/api/v1/login", userAuth);
 app.use("/api/v1/customer", customerBofRoute);
 app.use("/api/v1/count-all", countBofRoute);
 app.use("/api/v1/deposit_customer", getCurrentUser, depositBofRoute);
+app.use("/api/v1/company", getCurrentUser, companyRoute);
 
 // ສ່ວນສຳລັບ API Customer ສໍາລັບສ່ວນຂອງ ລູກຄ້າ
 const {
