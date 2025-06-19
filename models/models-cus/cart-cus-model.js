@@ -33,23 +33,15 @@ const CartCusModel = sequelize.define(
         key: "id",
       },
     },
-    
+
     product_size_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: ProductSizeOptionModel,
-        key: "id",
-      },
     },
 
     product_color_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: ProductColorOptionModel,
-        key: "id",
-      },
     },
 
     cart_price: {
@@ -62,6 +54,15 @@ const CartCusModel = sequelize.define(
     timestamps: false,
   }
 );
+
+CartCusModel.belongsTo(ProductSizeOptionModel, {
+  foreignKey: "product_size_id",
+  as: "productSize",
+});
+CartCusModel.belongsTo(ProductColorOptionModel, {
+  foreignKey: "product_color_id",
+  as: "productColor",
+});
 
 // CartCusModel.belongsTo(CustomerCusModel, {
 //   foreignKey: "customer_id",
