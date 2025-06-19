@@ -1,6 +1,6 @@
 const { Op } = require("sequelize");
-const RoleBofModel = require("../../models/models-bof/role-bof-model");
 const CompanyModel = require("../../models/models-bof/company-model");
+const CompanyAccountModel = require("../../models/models-bof/company-account-model");
 const {
   HTTP_BAD_REQUEST,
   HTTP_SUCCESS,
@@ -119,6 +119,85 @@ exports.deleteById = async (req, res) => {
     });
   }
   await CompanyModel.destroy({ where: { id } })
+    .then((response) => {
+      res.status(HTTP_SUCCESS).json({
+        status: HTTP_SUCCESS,
+        data: response,
+      });
+    })
+    .catch((err) => {
+      res
+        .status(HTTP_BAD_REQUEST)
+        .json({ status: HTTP_BAD_REQUEST, msg: err.message });
+    });
+};
+
+exports.findAllAccount = async (req, res) => {
+  try {
+    await CompanyAccountModel.findAll()
+      .then((response) => {
+        res.status(HTTP_SUCCESS).json({
+          status: HTTP_SUCCESS,
+          data: response,
+        });
+      })
+      .catch((err) => {
+        res
+          .status(HTTP_BAD_REQUEST)
+          .json({ status: HTTP_BAD_REQUEST, msg: err.message });
+      });
+  } catch (error) {
+    res
+      .status(HTTP_BAD_REQUEST)
+      .json({ status: HTTP_BAD_REQUEST, msg: error.message });
+  }
+};
+
+exports.createAccount = async (req, res) => {
+  try {
+    // Check if the role already exists
+    const existingProduct = await CompanyAccountModel.findOne({
+      where: {
+        [Op.or]: [
+          { account: req.body.account },
+        ],
+      },
+    });
+    if (existingProduct) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "Account already exists",
+      });
+    }
+    await CompanyAccountModel.create(req.body)
+      .then((response) => {
+        res.status(HTTP_SUCCESS).json({
+          status: HTTP_SUCCESS,
+          data: response,
+        });
+      })
+      .catch((err) => {
+        res
+          .status(HTTP_BAD_REQUEST)
+          .json({ status: HTTP_BAD_REQUEST, msg: err.message });
+      });
+  } catch (error) {
+    res
+      .status(HTTP_BAD_REQUEST)
+      .json({ status: HTTP_BAD_REQUEST, msg: error.message });
+  }
+};
+
+exports.deleteAccountById = async (req, res) => {
+  const { id } = req.params;
+  let result = await CompanyAccountModel.findByPk(id);
+  if (!result) {
+    return res.status(HTTP_NOT_FOUND).json({
+      status: HTTP_NOT_FOUND,
+      msg: "Account not found",
+    });
+  }
+  await CompanyAccountModel.destroy({ where: { id } })
     .then((response) => {
       res.status(HTTP_SUCCESS).json({
         status: HTTP_SUCCESS,
