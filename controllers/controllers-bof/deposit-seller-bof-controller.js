@@ -1,6 +1,6 @@
-const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
-const DepositCusModel = require("../../models/models-cus/deposit-cus-model");
-const WalletCusModel = require("../../models/models-cus/wallet-cus-model");
+const SellerModel = require("../../models/models-seller/seller-model");
+const DepositSellerModel = require("../../models/models-seller/deposit-seller-model");
+const WalletSellerModel = require("../../models/models-seller/wallet-seller-model");
 const { DEPOSIT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
 const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
 const { Op } = require("sequelize");
@@ -31,21 +31,28 @@ exports.findAllDepositBof = async (req, res) => {
   if (fromDate && toDate) {
     const start = new Date(fromDate);
     start.setHours(0, 0, 0, 0); // Start of day
-  
+
     const end = new Date(toDate);
     end.setHours(23, 59, 59, 999); // End of day
-  
+
     filter.createdAt = {
       [Op.between]: [start, end],
     };
   }
 
   try {
-    let deposit = await DepositCusModel.findAndCountAll({
+    let deposit = await DepositSellerModel.findAndCountAll({
       order: [["id", "DESC"]],
       where: { ...filter },
       limit,
       offset,
+      include: [
+        {
+          model: SellerModel,
+          as: "seller",
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        },
+      ]
     });
 
     const response = getPagingData(deposit, page, limit);
@@ -69,14 +76,14 @@ exports.findAllDepositBof = async (req, res) => {
 exports.findDepositByIdBof = async (req, res) => {
   const { id } = req.params;
   try {
-    let deposit = await DepositCusModel.findOne({
+    let deposit = await DepositSellerModel.findOne({
       where: {
         id,
       },
       include: [
         {
-          model: CustomerCusModel,
-          as: "customer",
+          model: SellerModel,
+          as: "seller",
           attributes: { exclude: ["createdAt", "updatedAt"] },
         },
       ],
@@ -109,7 +116,7 @@ exports.confirmDepositBof = async (req, res) => {
   const { id } = req.params;
   const { user_id } = req.user;
   try {
-    let deposit = await DepositCusModel.findOne({
+    let deposit = await DepositSellerModel.findOne({
       where: {
         id,
       },
@@ -126,11 +133,11 @@ exports.confirmDepositBof = async (req, res) => {
 
     await deposit.save();
     if (deposit.deposit_status === "approved") {
-      await WalletCusModel.create({
+      await WalletSellerModel.create({
         balance: deposit.amount,
         bonus: 0,
         wallet_type: "deposit",
-        customer_id: deposit.customer_id,
+        seller_id: deposit.seller_id,
         user_id: user_id,
         deposit_id: deposit.id,
       });
