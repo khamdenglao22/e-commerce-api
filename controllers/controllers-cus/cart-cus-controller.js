@@ -8,6 +8,8 @@ const {
   HTTP_NOT_FOUND,
   HTTP_SUCCESS,
 } = require("../../utils/http_status");
+const ProductSizeOptionModel = require("../../models/models-bof/product-size-option-model");
+const ProductColorOptionModel = require("../../models/models-bof/product-color-option-model");
 
 exports.findCartByCustomer = async (req, res) => {
   try {
@@ -34,6 +36,14 @@ exports.findCartByCustomer = async (req, res) => {
               ],
             },
           ],
+        },
+        {
+          model: ProductSizeOptionModel,
+          as: "productSize",
+        },
+        {
+          model: ProductColorOptionModel,
+          as: "productColor",
         },
       ],
     });
@@ -102,17 +112,79 @@ exports.addToCart = async (req, res) => {
         msg: "Quantity not found",
       });
     }
-    const existingCart = await CartCusModel.findOne({
-      where: {
-        [Op.or]: [
-          {
-            [Op.and]: [{ product_id: product_id }, { customer_id: cus_id }],
-          },
-          { product_size_id: product_size_id },
-          { product_color_id: product_color_id },
-        ],
-      },
-    });
+
+    let existingCart;
+    if (!product_size_id && !product_color_id) {
+      existingCart = await CartCusModel.findOne({
+        where: {
+          [Op.and]: [
+            {
+              product_id: product_id,
+            },
+            {
+              customer_id: cus_id,
+            },
+          ],
+        },
+      });
+    }
+
+    if (product_size_id && !product_color_id) {
+      existingCart = await CartCusModel.findOne({
+        where: {
+          [Op.and]: [
+            {
+              product_id: product_id,
+            },
+            {
+              customer_id: cus_id,
+            },
+            {
+              product_size_id: product_size_id,
+            },
+          ],
+        },
+      });
+    }
+
+    if (!product_size_id && product_color_id) {
+      existingCart = await CartCusModel.findOne({
+        where: {
+          [Op.and]: [
+            {
+              product_id: product_id,
+            },
+            {
+              customer_id: cus_id,
+            },
+            {
+              product_color_id: product_color_id,
+            },
+          ],
+        },
+      });
+    }
+
+    if (product_size_id && product_color_id) {
+      existingCart = await CartCusModel.findOne({
+        where: {
+          [Op.and]: [
+            {
+              product_id: product_id,
+            },
+            {
+              customer_id: cus_id,
+            },
+            {
+              product_size_id: product_size_id,
+            },
+            {
+              product_color_id: product_color_id,
+            },
+          ],
+        },
+      });
+    }
 
     if (existingCart) {
       await CartCusModel.update(

@@ -4,6 +4,7 @@ const ProductModel = require("../../models/models-seller/product-model");
 const {
   CATEGORY_MEDIA_URL,
   PRODUCT_MEDIA_URL,
+  BASE_MEDIA_URL,
 } = require("../../utils/constant");
 const { HTTP_SUCCESS, HTTP_BAD_REQUEST } = require("../../utils/http_status");
 
