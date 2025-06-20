@@ -129,7 +129,7 @@ exports.confirmDepositBof = async (req, res) => {
       await WalletCusModel.create({
         balance: deposit.amount,
         bonus: 0,
-        wallet_type: "deposit",
+        wallet_type: "in",
         customer_id: deposit.customer_id,
         user_id: user_id,
         deposit_id: deposit.id,
