@@ -1,6 +1,7 @@
 const sequelize = require("../../config");
 const { DataTypes } = require("sequelize");
 const SellerModel = require("./seller-model");
+const CompanyAccountModel = require("../models-bof/company-account-model")
 
 const DepositSellerModel = sequelize.define(
   "DepositSellerModel",
@@ -35,6 +36,10 @@ const DepositSellerModel = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    account_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     tableName: "deposit_seller",
@@ -45,6 +50,11 @@ const DepositSellerModel = sequelize.define(
 DepositSellerModel.belongsTo(SellerModel, {
   foreignKey: "seller_id",
   as: "seller",
+});
+
+DepositSellerModel.belongsTo(CompanyAccountModel, {
+  foreignKey: "account_id",
+  as: "account",
 });
 
 SellerModel.hasMany(DepositSellerModel, {

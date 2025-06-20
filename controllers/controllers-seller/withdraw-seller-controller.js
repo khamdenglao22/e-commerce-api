@@ -1,5 +1,7 @@
-const DepositSellerModel = require("../../models/models-seller/deposit-seller-model");
-const CompanyAccountModel = require("../../models/models-bof/company-account-model")
+// const DepositSellerModel = require("../../models/models-seller/deposit-seller-model");
+// const CompanyAccountModel = require("../../models/models-bof/company-account-model");
+const WithdrawSellerModel = require("../../models/models-seller/withdraw-seller-model");
+const SellerModel = require("../../models/models-seller/seller-model");
 const { DEPOSIT_MEDIA_URL } = require("../../utils/constant");
 const {
   HTTP_SUCCESS,
@@ -22,14 +24,20 @@ const getPagingData = (data, page, limit) => {
   return { totalItems, result, totalPages, currentPage };
 };
 
-exports.findAllDeposit = async (req, res) => {
+exports.findAllWithdraw = async (req, res) => {
   const { seller_id } = req.seller;
-  const { page, size, deposit_status, fromDate, toDate } = req.query;
+  const {
+    page,
+    size,
+    withdraw_status: withdraw_status,
+    fromDate,
+    toDate,
+  } = req.query;
   const { limit, offset } = getPagination(page, size);
   let filter = {};
-  if (deposit_status) {
+  if (withdraw_status) {
     filter = {
-      deposit_status: deposit_status,
+      withdraw_status: withdraw_status,
     };
   }
   if (fromDate && toDate) {
@@ -44,11 +52,16 @@ exports.findAllDeposit = async (req, res) => {
     };
   }
   try {
-    let deposit = await DepositSellerModel.findAndCountAll({
+    let deposit = await WithdrawSellerModel.findAndCountAll({
       order: [["id", "DESC"]],
       limit,
       offset,
-      include: { model: CompanyAccountModel, as: "account" },
+      include: [
+        {
+          model: SellerModel,
+          as: "seller",
+        },
+      ],
       where: {
         seller_id,
         ...filter,
@@ -74,11 +87,11 @@ exports.findAllDeposit = async (req, res) => {
   }
 };
 
-exports.findDepositById = async (req, res) => {
+exports.findWithdrawById = async (req, res) => {
   const { id } = req.params;
   const { seller_id } = req.seller;
   try {
-    let deposit = await DepositSellerModel.findOne({
+    let deposit = await WithdrawSellerModel.findOne({
       where: {
         id,
         seller_id,
@@ -87,7 +100,7 @@ exports.findDepositById = async (req, res) => {
     if (!deposit) {
       return res.status(HTTP_NOT_FOUND).json({
         status: HTTP_NOT_FOUND,
-        msg: "Deposit not found",
+        msg: "Withdraw not found",
       });
     }
 
@@ -106,7 +119,7 @@ exports.findDepositById = async (req, res) => {
   }
 };
 
-exports.createDeposit = async (req, res) => {
+exports.createWithdraw = async (req, res) => {
   const { seller_id } = req.seller;
   try {
     if (!req.files) {
@@ -131,7 +144,7 @@ exports.createDeposit = async (req, res) => {
       req.body.image = filename;
     }
     req.body.seller_id = seller_id;
-    const deposit = await DepositSellerModel.create(req.body);
+    const deposit = await WithdrawSellerModel.create(req.body);
     res.status(HTTP_CREATED).json({
       status: HTTP_CREATED,
       data: deposit,
