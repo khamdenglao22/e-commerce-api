@@ -1,10 +1,9 @@
 const sequelize = require("../../config");
 const { DataTypes } = require("sequelize");
-const CustomerCusModel = require("./customer-cus-model");
-const CompanyAccountModel = require("../../models/models-bof/company-account-model")
+const SellerModel = require("./seller-model");
 
-const DepositCusModel = sequelize.define(
-  "DepositCusModel",
+const WithdrawSellerModel = sequelize.define(
+  "WithdrawSellerModel",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -19,7 +18,7 @@ const DepositCusModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    deposit_status: {
+    withdraw_status: {
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: "pending",
@@ -28,7 +27,7 @@ const DepositCusModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    customer_id: {
+    seller_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -36,30 +35,23 @@ const DepositCusModel = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    account_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
+    
   },
   {
-    tableName: "deposit_customer",
+    tableName: "withdraw_seller",
     timestamps: true,
   }
 );
 
-DepositCusModel.belongsTo(CustomerCusModel, {
-  foreignKey: "customer_id",
-  as: "customer",
+WithdrawSellerModel.belongsTo(SellerModel, {
+  foreignKey: "seller_id",
+  as: "seller",
 });
 
-DepositCusModel.belongsTo(CompanyAccountModel, {
-  foreignKey: "account_id",
-  as: "account",
+
+SellerModel.hasMany(WithdrawSellerModel, {
+  foreignKey: "seller_id",
+  as: "withdraw_seller",
 });
 
-CustomerCusModel.hasMany(DepositCusModel, {
-  foreignKey: "customer_id",
-  as: "deposit_customer",
-});
-
-module.exports = DepositCusModel;
+module.exports = WithdrawSellerModel;
