@@ -1,6 +1,7 @@
 const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
 const DepositCusModel = require("../../models/models-cus/deposit-cus-model");
 const WalletCusModel = require("../../models/models-cus/wallet-cus-model");
+const CompanyAccountModel = require("../../models/models-bof/company-account-model")
 const { DEPOSIT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
 const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
 const { Op } = require("sequelize");
@@ -46,6 +47,17 @@ exports.findAllDepositBof = async (req, res) => {
       where: { ...filter },
       limit,
       offset,
+      include: [
+        {
+          model: CustomerCusModel,
+          as: "customer",
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        },
+        {
+          model: CompanyAccountModel,
+          as: "account",
+        },
+      ],
     });
 
     const response = getPagingData(deposit, page, limit);
@@ -123,6 +135,9 @@ exports.confirmDepositBof = async (req, res) => {
 
     deposit.deposit_status = req.body.deposit_status;
     deposit.user_id = user_id;
+    if( req.body.reason) {
+      deposit.reason = req.body.reason;
+    }
 
     await deposit.save();
     if (deposit.deposit_status === "approved") {

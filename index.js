@@ -87,9 +87,11 @@ const {
   getCurrentSeller,
 } = require("./controllers/controllers-seller/auth-seller-controller");
 const depositSellerRoute = require("./routers/routers-seller/deposit-router");
+const withdrawSellerRoute = require("./routers/routers-seller/withdraw-router");
 
 app.use("/api/v1/sell/info", sellerRoute);
 app.use("/api/v1/sell/products", getCurrentSeller, productRoute);
 app.use("/api/v1/sell/deposit_seller", getCurrentSeller, depositSellerRoute);
+app.use("/api/v1/sell/withdraw_seller", getCurrentSeller, withdrawSellerRoute);
 
 app.listen(port, () => console.log(`listening on http://localhost:${port}`));
