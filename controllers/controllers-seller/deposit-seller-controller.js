@@ -1,17 +1,60 @@
 const DepositSellerModel = require("../../models/models-seller/deposit-seller-model");
 const { DEPOSIT_MEDIA_URL } = require("../../utils/constant");
-const { HTTP_SUCCESS, HTTP_BAD_REQUEST } = require("../../utils/http_status");
+const {
+  HTTP_SUCCESS,
+  HTTP_BAD_REQUEST,
+  HTTP_CREATED,
+} = require("../../utils/http_status");
+const path = require("path");
+const { Op } = require("sequelize");
+
+const getPagination = (page, size) => {
+  const limit = size ? +size : 10;
+  const offset = page && page > 0 ? (page - 1) * limit : 0;
+  return { limit, offset };
+};
+
+const getPagingData = (data, page, limit) => {
+  const { count: totalItems, rows: result } = data;
+  const currentPage = page ? +page : 0;
+  const totalPages = Math.ceil(totalItems / limit);
+  return { totalItems, result, totalPages, currentPage };
+};
 
 exports.findAllDeposit = async (req, res) => {
   const { seller_id } = req.seller;
+  const { page, size, deposit_status,fromDate,toDate } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  let filter = {};
+  if (deposit_status) {
+    filter = {
+      deposit_status: deposit_status,
+    };
+  }
+  if (fromDate && toDate) {
+    const start = new Date(fromDate);
+    start.setHours(0, 0, 0, 0); // Start of day
+  
+    const end = new Date(toDate);
+    end.setHours(23, 59, 59, 999); // End of day
+  
+    filter.createdAt = {
+      [Op.between]: [start, end],
+    };
+  }
   try {
-    let deposit = await DepositSellerModel.findAll({
+    let deposit = await DepositSellerModel.findAndCountAll({
+      order: [["id", "DESC"]],
+      limit,
+      offset,
       where: {
         seller_id,
+        ...filter,
       },
     });
 
-    deposit = deposit.map((row) => {
+    const response = getPagingData(deposit, page, limit);
+    response.result = response.result.map((row) => {
       if (row.image) {
         row.dataValues.image = `${DEPOSIT_MEDIA_URL}/${row.image}`;
       } else {
@@ -20,7 +63,7 @@ exports.findAllDeposit = async (req, res) => {
       return row;
     });
 
-    res.status(HTTP_SUCCESS).json({ status: HTTP_SUCCESS, data: deposit });
+    res.status(HTTP_SUCCESS).json(response);
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({
       status: HTTP_BAD_REQUEST,
