@@ -257,7 +257,7 @@ exports.updateRemoveCart = async (req, res) => {
         msg: "Cart item not found",
       });
     }
-    if (cartItem.qty >= 1) {
+    if (cartItem.qty > 1) {
       await CartCusModel.update(
         { qty: cartItem.qty - 1 },
         { where: { id: cartItem.id } }
