@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const DepositCusModel = require("../../models/models-cus/deposit-cus-model");
 const { DEPOSIT_MEDIA_URL } = require("../../utils/constant");
 const {
@@ -23,8 +24,25 @@ const getPagingData = (data, page, limit) => {
 
 exports.findAllDepositCus = async (req, res) => {
   const { cus_id } = req.customer;
-  const { page, size } = req.query;
+  const { page, size, deposit_status, from_date, to_date } = req.query;
   const { limit, offset } = getPagination(page, size);
+  let filter = {};
+  if (deposit_status) {
+    filter = { ...filter, deposit_status: deposit_status };
+  }
+
+  if (from_date && to_date) {
+    const start = new Date(from_date);
+    start.setHours(0, 0, 0, 0); // Start of day
+
+    const end = new Date(to_date);
+    end.setHours(23, 59, 59, 999); // End of day
+
+    filter.createdAt = {
+      [Op.between]: [start, end],
+    };
+  }
+
   try {
     let deposit = await DepositCusModel.findAndCountAll({
       order: [["id", "DESC"]],
@@ -32,6 +50,7 @@ exports.findAllDepositCus = async (req, res) => {
       offset,
       where: {
         customer_id: cus_id,
+        ...filter,
       },
     });
 
