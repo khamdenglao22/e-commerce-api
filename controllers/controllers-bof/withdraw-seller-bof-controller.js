@@ -22,13 +22,13 @@ const getPagingData = (data, page, limit) => {
 };
 
 exports.findAllWithdrawBof = async (req, res) => {
-  const { page, size, deposit_status, fromDate, toDate } = req.query;
+  const { page, size, withdraw_status, fromDate, toDate } = req.query;
   const { limit, offset } = getPagination(page, size);
 
   let filter = {};
-  if (deposit_status) {
+  if (withdraw_status) {
     filter = {
-      deposit_status: deposit_status,
+      withdraw_status: withdraw_status,
     };
   }
   if (fromDate && toDate) {
@@ -158,7 +158,7 @@ exports.confirmWithdrawBof = async (req, res) => {
 
     await withdraw.save();
 
-    if (withdraw.deposit_status === "approved") {
+    if (withdraw.withdraw_status === "approved") {
       await WalletSellerModel.create({
         balance: withdraw.amount,
         bonus: 0,
