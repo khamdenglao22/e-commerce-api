@@ -16,9 +16,17 @@ const { SELLER_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
 
 exports.findSellerById = async (req, res) => {
   try {
-    const { cus_id } = req.customer;
+    const { seller_id } = req.seller;
     let result = await SellerModel.findOne({
-      where: { [Op.and]: [{ customer_id: cus_id }, { seller_status: 2 }] },
+      include: [
+        {
+          model: CustomerCusModel,
+          as: "customer",
+        },
+      ],
+      where: {
+        [Op.and]: [{ id: seller_id }, { seller_status: "active" }],
+      },
     });
     if (!result) {
       return res.status(HTTP_BAD_REQUEST).json({
@@ -48,6 +56,7 @@ exports.findSellerById = async (req, res) => {
 exports.createSeller = async (req, res) => {
   try {
     const { cus_id } = req.customer;
+    console.log("req.customer====", req.customer);
     if (!cus_id) {
       return res.status(HTTP_BAD_REQUEST).json({
         status: HTTP_BAD_REQUEST,
@@ -156,26 +165,27 @@ exports.createSeller = async (req, res) => {
 
 exports.updateSeller = async (req, res) => {
   try {
-    const { cus_id, seller_id } = req.customer;
-    if (!cus_id) {
-      return res.status(HTTP_BAD_REQUEST).json({
-        status: HTTP_BAD_REQUEST,
-        msg: "Customer ID not found",
-      });
-    }
+    // const { cus_id, seller_id } = req.customer;
+    const { seller_id } = req.seller;
+    // if (!cus_id) {
+    //   return res.status(HTTP_BAD_REQUEST).json({
+    //     status: HTTP_BAD_REQUEST,
+    //     msg: "Customer ID not found",
+    //   });
+    // }
     if (!seller_id) {
       return res.status(HTTP_BAD_REQUEST).json({
         status: HTTP_BAD_REQUEST,
         msg: "Seller ID not found",
       });
     }
-    const { error } = sellerSchema.validate(req.body);
-    if (error) {
-      return res.status(HTTP_BAD_REQUEST).json({
-        status: HTTP_BAD_REQUEST,
-        msg: error.message,
-      });
-    }
+    // const { error } = sellerSchema.validate(req.body);
+    // if (error) {
+    //   return res.status(HTTP_BAD_REQUEST).json({
+    //     status: HTTP_BAD_REQUEST,
+    //     msg: error.message,
+    //   });
+    // }
 
     req.body.store_name = req.body.store_name.trim();
     const existingSeller = await SellerModel.findOne({
@@ -201,7 +211,7 @@ exports.updateSeller = async (req, res) => {
       const front_document = req.files.front_document;
       const back_certificate = req.files.back_certificate;
 
-      const allowFiles = ["image/jpeg", "image/png", "image/jpg"];
+      const allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
       if (!allowFiles.includes(front_document.mimetype)) {
         return res.status(HTTP_BAD_REQUEST).json({
           status: HTTP_BAD_REQUEST,

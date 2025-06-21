@@ -1,16 +1,12 @@
+const SellerModel = require("../../models/models-seller/seller-model");
 // const DepositSellerModel = require("../../models/models-seller/deposit-seller-model");
+const WalletSellerModel = require("../../models/models-seller/wallet-seller-model");
 // const CompanyAccountModel = require("../../models/models-bof/company-account-model");
 const WithdrawSellerModel = require("../../models/models-seller/withdraw-seller-model");
-const SellerModel = require("../../models/models-seller/seller-model");
-const { DEPOSIT_MEDIA_URL } = require("../../utils/constant");
-const {
-  HTTP_SUCCESS,
-  HTTP_BAD_REQUEST,
-  HTTP_CREATED,
-  BASE_MEDIA_URL,
-} = require("../../utils/http_status");
-const path = require("path");
+const { DEPOSIT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
+const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
 const { Op } = require("sequelize");
+const path = require("path");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
@@ -25,20 +21,14 @@ const getPagingData = (data, page, limit) => {
   return { totalItems, result, totalPages, currentPage };
 };
 
-exports.findAllWithdraw = async (req, res) => {
-  const { seller_id } = req.seller;
-  const {
-    page,
-    size,
-    withdraw_status: withdraw_status,
-    fromDate,
-    toDate,
-  } = req.query;
+exports.findAllWithdrawBof = async (req, res) => {
+  const { page, size, deposit_status, fromDate, toDate } = req.query;
   const { limit, offset } = getPagination(page, size);
+
   let filter = {};
-  if (withdraw_status) {
+  if (deposit_status) {
     filter = {
-      withdraw_status: withdraw_status,
+      deposit_status: deposit_status,
     };
   }
   if (fromDate && toDate) {
@@ -52,34 +42,32 @@ exports.findAllWithdraw = async (req, res) => {
       [Op.between]: [start, end],
     };
   }
+
   try {
     let deposit = await WithdrawSellerModel.findAndCountAll({
       order: [["id", "DESC"]],
+      where: { ...filter },
       limit,
       offset,
       include: [
         {
           model: SellerModel,
           as: "seller",
+          attributes: { exclude: ["createdAt", "updatedAt"] },
         },
       ],
-      where: {
-        seller_id,
-        ...filter,
-      },
     });
 
     const response = getPagingData(deposit, page, limit);
-    response.result = response.result.map((row) => {
-      if (row.image) {
-        row.dataValues.image = `${DEPOSIT_MEDIA_URL}/${row.image}`;
+    response.result = response.result.map((our) => {
+      if (our.image) {
+        our.dataValues.image = `${DEPOSIT_MEDIA_URL}/${our.image}`;
       } else {
-        //row.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+        our.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
       }
-      return row;
+      return our;
     });
-
-    res.status(HTTP_SUCCESS).json(response);
+    res.json(response);
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({
       status: HTTP_BAD_REQUEST,
@@ -88,20 +76,25 @@ exports.findAllWithdraw = async (req, res) => {
   }
 };
 
-exports.findWithdrawById = async (req, res) => {
+exports.findWithdrawByIdBof = async (req, res) => {
   const { id } = req.params;
-  const { seller_id } = req.seller;
   try {
     let deposit = await WithdrawSellerModel.findOne({
       where: {
         id,
-        seller_id,
       },
+      include: [
+        {
+          model: SellerModel,
+          as: "seller",
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        },
+      ],
     });
     if (!deposit) {
-      return res.status(HTTP_NOT_FOUND).json({
-        status: HTTP_NOT_FOUND,
-        msg: "Withdraw not found",
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "Deposit not found",
       });
     }
 
@@ -110,8 +103,10 @@ exports.findWithdrawById = async (req, res) => {
     } else {
       deposit.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
     }
-
-    res.status(HTTP_SUCCESS).json({ status: HTTP_SUCCESS, data: deposit });
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: deposit,
+    });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({
       status: HTTP_BAD_REQUEST,
@@ -120,11 +115,26 @@ exports.findWithdrawById = async (req, res) => {
   }
 };
 
-exports.createWithdraw = async (req, res) => {
-  const { seller_id } = req.seller;
+exports.confirmWithdrawBof = async (req, res) => {
+  const { id } = req.params;
+  const { user_id } = req.user;
   try {
-    if (!req.files) {
-      delete req.body.image;
+    let withdraw = await WithdrawSellerModel.findOne({
+      where: {
+        id,
+      },
+    });
+    if (!withdraw) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "Withdraw not found",
+      });
+    }
+
+    withdraw.withdraw_status = req.body.withdraw_status;
+    withdraw.user_id = user_id;
+    if (req.body.reason) {
+      withdraw.reason = req.body.reason;
     }
 
     // Upload image
@@ -142,13 +152,26 @@ exports.createWithdraw = async (req, res) => {
       image.mv(
         path.join(__dirname, `../../uploads/images/deposit/${filename}`)
       );
-      req.body.image = filename;
+      console.log("Image uploaded successfully===",filename);
+      withdraw.image = filename;
     }
-    req.body.seller_id = seller_id;
-    const deposit = await WithdrawSellerModel.create(req.body);
-    res.status(HTTP_CREATED).json({
-      status: HTTP_CREATED,
-      data: deposit,
+
+    await withdraw.save();
+
+    if (withdraw.deposit_status === "approved") {
+      await WalletSellerModel.create({
+        balance: withdraw.amount,
+        bonus: 0,
+        wallet_type: "widthdraw",
+        seller_id: withdraw.seller_id,
+        user_id: user_id,
+        deposit_id: withdraw.id,
+      });
+    }
+
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: withdraw,
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({

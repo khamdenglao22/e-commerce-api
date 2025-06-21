@@ -16,7 +16,7 @@ const WithdrawSellerModel = sequelize.define(
     },
     image: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     withdraw_status: {
       type: DataTypes.STRING,

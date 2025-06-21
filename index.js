@@ -45,6 +45,7 @@ const countBofRoute = require("./routers/routers-bof/count-bof-router");
 const depositBofRoute = require("./routers/routers-bof/deposit-bof-router");
 const companyRoute = require("./routers/routers-bof/company-router");
 const depositSellerBofRoute = require("./routers/routers-bof/deposit-seller-bof-router");
+const withdrawSellerBofRoute = require("./routers/routers-bof/withdraw-seller-bof-router");
 
 app.use("/api/v1/brands", brandRoute);
 app.use("/api/v1/category", categoryRoute);
@@ -59,6 +60,7 @@ app.use("/api/v1/count-all", countBofRoute);
 app.use("/api/v1/deposit_customer", getCurrentUser, depositBofRoute);
 app.use("/api/v1/company", getCurrentUser, companyRoute);
 app.use("/api/v1/deposit_seller", getCurrentUser, depositSellerBofRoute);
+app.use("/api/v1/withdraw_seller", getCurrentUser, withdrawSellerBofRoute);
 
 // ສ່ວນສຳລັບ API Customer ສໍາລັບສ່ວນຂອງ ລູກຄ້າ
 const {
@@ -92,7 +94,7 @@ const productRoute = require("./routers/routers-seller/product-router");
 const depositSellerRoute = require("./routers/routers-seller/deposit-router");
 const withdrawSellerRoute = require("./routers/routers-seller/withdraw-router");
 
-app.use("/api/v1/sell/info", sellerRoute);
+app.use("/api/v1/sell/info",getCurrentSeller, sellerRoute);
 app.use("/api/v1/sell/products", getCurrentSeller, productRoute);
 app.use("/api/v1/sell/deposit_seller", getCurrentSeller, depositSellerRoute);
 app.use("/api/v1/sell/withdraw_seller", getCurrentSeller, withdrawSellerRoute);
