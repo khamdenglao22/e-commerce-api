@@ -42,6 +42,10 @@ const SellerModel = sequelize.define(
       type: DataTypes.STRING(250),
       allowNull: true,
     },
+    wallet_address: {
+      type: DataTypes.STRING(250),
+      allowNull: true,
+    },
     customer_id: {
       type: DataTypes.INTEGER,
       allowNull: false,

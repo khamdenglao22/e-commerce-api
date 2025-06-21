@@ -5,6 +5,7 @@ const {
   HTTP_SUCCESS,
   HTTP_BAD_REQUEST,
   HTTP_CREATED,
+  BASE_MEDIA_URL,
 } = require("../../utils/http_status");
 const path = require("path");
 const { Op } = require("sequelize");
@@ -60,7 +61,7 @@ exports.findAllDeposit = async (req, res) => {
       if (row.image) {
         row.dataValues.image = `${DEPOSIT_MEDIA_URL}/${row.image}`;
       } else {
-        our.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+        row.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
       }
       return row;
     });

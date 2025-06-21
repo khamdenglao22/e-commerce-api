@@ -1,7 +1,7 @@
 const SellerModel = require("../../models/models-seller/seller-model");
 const DepositSellerModel = require("../../models/models-seller/deposit-seller-model");
 const WalletSellerModel = require("../../models/models-seller/wallet-seller-model");
-const CompanyAccountModel = require("../../models/models-bof/company-account-model")
+const CompanyAccountModel = require("../../models/models-bof/company-account-model");
 const { DEPOSIT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
 const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
 const { Op } = require("sequelize");
