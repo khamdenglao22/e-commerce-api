@@ -75,6 +75,7 @@ const categoryCustomerRoute = require("./routers/routers-cus/category-cus-router
 const depositRoute = require("./routers/routers-cus/deposit-cus-router");
 const walletCusRoute = require("./routers/routers-cus/wallet-cus-router");
 const companyCusRoute = require("./routers/routers-cus/company-cus-router");
+const addressCusRoute = require("./routers/routers-cus/address-cus-router");
 
 app.use("/api/v1/cus/register", customerRoute);
 app.use("/api/v1/cus/login-customer", authRoute);
@@ -84,6 +85,7 @@ app.use("/api/v1/cus/category", categoryCustomerRoute);
 app.use("/api/v1/cus/deposit", getCurrentCustomer, depositRoute);
 app.use("/api/v1/cus/wallet", getCurrentCustomer, walletCusRoute);
 app.use("/api/v1/cus/company", companyCusRoute);
+app.use("/api/v1/cus/address", getCurrentCustomer, addressCusRoute);
 
 // ສ່ວນສຳລັບ API Seller
 const {
