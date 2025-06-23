@@ -96,7 +96,7 @@ const productRoute = require("./routers/routers-seller/product-router");
 const depositSellerRoute = require("./routers/routers-seller/deposit-router");
 const withdrawSellerRoute = require("./routers/routers-seller/withdraw-router");
 
-app.use("/api/v1/sell/info",getCurrentSeller, sellerRoute);
+app.use("/api/v1/sell/info", sellerRoute);
 app.use("/api/v1/sell/products", getCurrentSeller, productRoute);
 app.use("/api/v1/sell/deposit_seller", getCurrentSeller, depositSellerRoute);
 app.use("/api/v1/sell/withdraw_seller", getCurrentSeller, withdrawSellerRoute);

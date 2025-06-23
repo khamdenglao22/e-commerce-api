@@ -5,8 +5,15 @@ const {
   updateSeller,
 } = require("../../controllers/controllers-seller/seller-controller");
 
-router.post("/", createSeller);
-router.get("/", findSellerById);
-router.put("/", updateSeller);
+const {
+  getCurrentCustomer,
+} = require("../../controllers/controllers-cus/auth-cus-controller");
+const {
+  getCurrentSeller,
+} = require("../../controllers/controllers-seller/auth-seller-controller");
+
+router.post("/",getCurrentCustomer, createSeller);
+router.get("/",getCurrentSeller, findSellerById);
+router.put("/",getCurrentSeller, updateSeller);
 
 module.exports = router;
