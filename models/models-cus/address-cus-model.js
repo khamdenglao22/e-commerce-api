@@ -1,6 +1,7 @@
 const sequelize = require("../../config");
 const { DataTypes } = require("sequelize");
 const { post } = require("../../routers/routers-cus/cart-cus-router");
+const CustomerCusModel = require("./customer-cus-model");
 
 const AddressCusModel = sequelize.define(
   "AddressCus",
@@ -53,5 +54,10 @@ const AddressCusModel = sequelize.define(
     timestamps: false,
   }
 );
+
+AddressCusModel.belongsTo(CustomerCusModel, {
+  foreignKey: "customer_id",
+  as: "customer",
+});
 
 module.exports = AddressCusModel;
