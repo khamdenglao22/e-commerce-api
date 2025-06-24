@@ -46,6 +46,7 @@ const depositBofRoute = require("./routers/routers-bof/deposit-bof-router");
 const companyRoute = require("./routers/routers-bof/company-router");
 const depositSellerBofRoute = require("./routers/routers-bof/deposit-seller-bof-router");
 const withdrawSellerBofRoute = require("./routers/routers-bof/withdraw-seller-bof-router");
+const slideImageRoute = require("./routers/routers-bof/slide-image-router");
 
 app.use("/api/v1/brands", brandRoute);
 app.use("/api/v1/category", categoryRoute);
@@ -61,6 +62,7 @@ app.use("/api/v1/deposit_customer", getCurrentUser, depositBofRoute);
 app.use("/api/v1/company", getCurrentUser, companyRoute);
 app.use("/api/v1/deposit_seller", getCurrentUser, depositSellerBofRoute);
 app.use("/api/v1/withdraw_seller", getCurrentUser, withdrawSellerBofRoute);
+app.use("/api/v1/slide_image", slideImageRoute);
 
 // ສ່ວນສຳລັບ API Customer ສໍາລັບສ່ວນຂອງ ລູກຄ້າ
 const {

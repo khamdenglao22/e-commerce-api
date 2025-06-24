@@ -224,7 +224,7 @@ exports.updateSeller = async (req, res) => {
           msg: "Image must be a valid image file",
         });
       }
-      const ext_front_document = path.extname(image.name);
+      const ext_front_document = path.extname(front_document.name);
       const filename_front_document = Date.now() + ext_front_document;
       front_document.mv(
         path.join(
@@ -232,7 +232,7 @@ exports.updateSeller = async (req, res) => {
           `../../uploads/images/sellers/${filename_front_document}`
         )
       );
-      const ext_back_certificate = path.extname(image.name);
+      const ext_back_certificate = path.extname(back_certificate.name);
       const filename_back_certificate = Date.now() + ext_back_certificate;
       back_certificate.mv(
         path.join(
