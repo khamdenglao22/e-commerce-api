@@ -22,13 +22,13 @@ const getPagingData = (data, page, limit) => {
 };
 
 exports.findAllWithdrawBof = async (req, res) => {
-  const { page, size, deposit_status, fromDate, toDate } = req.query;
+  const { page, size, withdraw_status, fromDate, toDate } = req.query;
   const { limit, offset } = getPagination(page, size);
 
   let filter = {};
-  if (deposit_status) {
+  if (withdraw_status) {
     filter = {
-      deposit_status: deposit_status,
+      withdraw_status: withdraw_status,
     };
   }
   if (fromDate && toDate) {
@@ -142,7 +142,7 @@ exports.confirmWithdrawBof = async (req, res) => {
       let image = req.files.image;
       let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
       if (!allowFiles.includes(image.mimetype)) {
-        return next({
+        return res.json({
           status: 400,
           msg: "ຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
         });
