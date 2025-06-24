@@ -18,7 +18,7 @@ const OrderModel = sequelize.define(
     order_status: {
       type: DataTypes.STRING(50),
       allowNull: false,
-      defaultValue: "pending",
+      defaultValue: "success",
     },
     order_date: {
       type: DataTypes.DATE,

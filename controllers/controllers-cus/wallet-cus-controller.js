@@ -1,30 +1,76 @@
-const WalletCusModel = require('../../models/models-cus/wallet-cus-model')
-const { QueryTypes } = require('sequelize');
+const WalletCusModel = require("../../models/models-cus/wallet-cus-model");
+const { QueryTypes } = require("sequelize");
 const sequelize = require("../../config");
+const DepositCusModel = require("../../models/models-cus/deposit-cus-model");
+const OrderModel = require("../../models/order-model");
+const { HTTP_SUCCESS, HTTP_BAD_REQUEST } = require("../../utils/http_status");
 
 exports.findCustomerWallet = async (req, res) => {
-    const { cus_id } = req.customer
-    try {
-        // const result = await WalletCusModel.findAll({ where: { customer_id: cus_id } });
-        // console.log(result)
+  const { cus_id } = req.customer;
+  try {
+    let deposit_in = await WalletCusModel.findAll({
+      where: {
+        customer_id: cus_id,
+        wallet_type: "in",
+      },
+      attributes: ["id", "balance"],
+    });
 
-        const result = await sequelize.query(`SELECT
-        SUM(bonus) AS total_bonus,
-        SUM(CASE WHEN wallet_type = 'in' THEN balance ELSE 0 END) AS total_deposit,
-        SUM(CASE WHEN wallet_type = 'out' THEN balance ELSE 0 END) AS total_sell,
-        SUM(CASE WHEN wallet_type = 'in' THEN balance ELSE 0 END) -
-        SUM(CASE WHEN wallet_type = 'out' THEN balance ELSE 0 END) AS total_balance
-    FROM wallet_customer
-    WHERE customer_id = :cus_id`, {
-                replacements: { cus_id: cus_id },
-                type: QueryTypes.SELECT,
-            });
+    let deposit_out = await WalletCusModel.findAll({
+      where: {
+        customer_id: cus_id,
+        wallet_type: "out",
+      },
+      attributes: ["id", "balance"],
+    });
 
-        res.status(200).json(result)
-    } catch (error) {
-        res.status(400).json({
-            status: 400,
-            msg: `error = ${error}`
-        })
-    }
+    let depositBonus = await WalletCusModel.findAll({
+      where: {
+        customer_id: cus_id,
+      },
+      attributes: ["id", "bonus"],
+    });
+
+    const order_balance = await OrderModel.findAll({
+      where: {
+        customer_id: cus_id,
+      },
+      attributes: ["id", "total_amount"],
+    });
+
+    const totalBalanceIn = deposit_in.reduce(
+      (sum, item) => sum + item.balance,
+      0
+    );
+
+    const totalBalanceOut = deposit_out.reduce(
+      (sum, item) => sum + item.balance,
+      0
+    );
+
+    const totalBalanceOrder = order_balance.reduce(
+      (sum, item) => sum + item.total_amount,
+      0
+    );
+
+    const totalBalanceBonus = depositBonus.reduce(
+      (sum, item) => sum + item.bonus,
+      0
+    );
+
+    const totalBalance = totalBalanceIn - (totalBalanceOut + totalBalanceOrder);
+
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: {
+        totalBalance,
+        totalBalanceBonus,
+      },
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: `error = ${error}`,
+    });
+  }
 };

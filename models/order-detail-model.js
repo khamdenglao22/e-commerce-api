@@ -50,4 +50,18 @@ const OrderDetailModel = sequelize.define(
   }
 );
 
+OrderModel.hasMany(OrderDetailModel, {
+  foreignKey: "order_id",
+  as: "order_details",
+});
+
+// ProductModel.hasMany(OrderDetailModel, {
+//   foreignKey: "product_id",
+//   as: "product_details",
+// });
+OrderDetailModel.belongsTo(ProductModel, {
+  foreignKey: "product_id",
+  as: "product_details",
+});
+
 module.exports = OrderDetailModel;
