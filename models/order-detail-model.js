@@ -2,6 +2,8 @@ const sequelize = require("../config");
 const { DataTypes } = require("sequelize");
 const OrderModel = require("./order-model");
 const ProductModel = require("./models-seller/product-model");
+const ProductColorOptionModel = require("./models-bof/product-color-option-model");
+const ProductSizeOptionModel = require("./models-bof/product-size-option-model");
 
 const OrderDetailModel = sequelize.define(
   "OrderDetail",
@@ -43,6 +45,15 @@ const OrderDetailModel = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    reason: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    order_detail_status: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      defaultValue: "success",
+    },
   },
   {
     tableName: "order_details",
@@ -55,13 +66,24 @@ OrderModel.hasMany(OrderDetailModel, {
   as: "order_details",
 });
 
-// ProductModel.hasMany(OrderDetailModel, {
-//   foreignKey: "product_id",
-//   as: "product_details",
-// });
 OrderDetailModel.belongsTo(ProductModel, {
   foreignKey: "product_id",
   as: "product_details",
+});
+
+OrderDetailModel.belongsTo(ProductModel, {
+  foreignKey: "product_id",
+  as: "product",
+});
+
+OrderDetailModel.belongsTo(ProductColorOptionModel, {
+  foreignKey: "product_color_id",
+  as: "product_color_details",
+});
+
+OrderDetailModel.belongsTo(ProductSizeOptionModel, {
+  foreignKey: "product_size_id",
+  as: "product_size_details",
 });
 
 module.exports = OrderDetailModel;

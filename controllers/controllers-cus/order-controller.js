@@ -10,6 +10,10 @@ const {
   HTTP_CREATED,
   HTTP_SUCCESS,
 } = require("../../utils/http_status");
+const ProductColorOptionModel = require("../../models/models-bof/product-color-option-model");
+const ProductSizeOptionModel = require("../../models/models-bof/product-size-option-model");
+const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
+const { PRODUCT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
 
 exports.createOrder = async (req, res) => {
   const { cus_id } = req.customer;
@@ -101,7 +105,7 @@ exports.findAllOrder = async (req, res) => {
     const end = new Date(to_date);
     end.setHours(23, 59, 59, 999); // End of day
 
-    filter.createdAt = {
+    filter.order_date = {
       [Op.between]: [start, end],
     };
   }
@@ -109,11 +113,115 @@ exports.findAllOrder = async (req, res) => {
     const order = await OrderModel.findAndCountAll({
       offset,
       limit,
+      distinct: true,
       where: { ...filter, customer_id: cus_id },
+      include: [
+        {
+          model: OrderDetailModel,
+          as: "order_details",
+        },
+      ],
+    });
+    const response = getPagingData(order, page, limit);
+
+    // console.log(response.result);
+
+    response.result = response.result.map((orderItem) => {
+      orderItem.dataValues.total_qty = orderItem.order_details.reduce(
+        (sum, detail) => sum + detail.qty,
+        0
+      );
+      return orderItem;
     });
 
-    const response = getPagingData(order, page, limit);
+    // const totalQty = response.result.order_details.reduce(
+    //   (sum, item) => sum + item.qty,
+    //   0
+    // );
+    // response.result.dataValues.totalQty = totalQty;
+
     res.status(HTTP_SUCCESS).json(response);
+  } catch (error) {
+    res
+      .status(HTTP_BAD_REQUEST)
+      .json({ status: HTTP_BAD_REQUEST, msg: error.message });
+  }
+};
+
+exports.findOrderDetail = async (req, res) => {
+  const { id } = req.params;
+  const { cus_id } = req.customer;
+  try {
+    const order = await OrderModel.findOne({
+      where: { id, customer_id: cus_id },
+      include: [
+        {
+          model: OrderDetailModel,
+          as: "order_details",
+          attributes: ["id", "qty", "price",'order_detail_status'],
+          include: [
+            {
+              model: ProductModel,
+              as: "product",
+              attributes: ["id"],
+              include: [
+                {
+                  model: ProductMasterBofModel,
+                  as: "product_master",
+                  attributes: [
+                    "id",
+                    "name_en",
+                    "name_th",
+                    "name_ch",
+                    "price",
+                    "image",
+                    "description_en",
+                    "description_th",
+                    "description_ch",
+                    "long_description_en",
+                    "long_description_th",
+                    "long_description_ch",
+                  ],
+                },
+              ],
+            },
+            {
+              model: ProductColorOptionModel,
+              as: "product_color_details",
+            },
+            {
+              model: ProductSizeOptionModel,
+              as: "product_size_details",
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!order) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "Order not found",
+      });
+    }
+
+    order.order_details = order.order_details.map((our) => {
+      if (our.product.product_master.image) {
+        our.product.product_master.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.product.product_master.image}`;
+      } else {
+        our.product.product_master.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+      }
+      return our;
+    });
+
+    const totalQty = order.order_details.reduce(
+      (sum, item) => sum + item.qty,
+      0
+    );
+
+    order.dataValues.totalQty = totalQty;
+
+    res.status(HTTP_SUCCESS).json({ status: HTTP_SUCCESS, data: order });
   } catch (error) {
     res
       .status(HTTP_BAD_REQUEST)

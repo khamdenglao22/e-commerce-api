@@ -48,4 +48,9 @@ const UserBofModel = sequelize.define(
   }
 );
 
+UserBofModel.belongsTo(RoleBofModel, {
+  foreignKey: "seller_id",
+  as: "seller",
+});
+
 module.exports = UserBofModel;
