@@ -64,7 +64,9 @@ exports.getCurrentCustomer = async (req, res, next) => {
 
     const customer = await CustomerCusModel.findByPk(decoded.cus_id);
     if (!customer) {
-      return res.status(401).send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ" });
+      return res
+        .status(401)
+        .send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ" });
     }
 
     req.customer = {
@@ -73,6 +75,8 @@ exports.getCurrentCustomer = async (req, res, next) => {
     };
     next();
   } catch (err) {
-    return res.status(401).send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ" });
+    return res
+      .status(401)
+      .send({ status: 401, msg: `ກະລຸນາເຂົ້າສູ່ລະບົບ 3 ${err.message}` });
   }
 };

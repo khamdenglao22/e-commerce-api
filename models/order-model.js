@@ -42,6 +42,10 @@ const OrderModel = sequelize.define(
         key: "id",
       },
     },
+    reason: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
   },
   {
     tableName: "orders",
