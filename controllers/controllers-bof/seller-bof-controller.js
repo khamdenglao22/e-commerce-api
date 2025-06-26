@@ -1,6 +1,7 @@
 const BrandBofModel = require("../../models/models-bof/brand-bof-model");
 const CategoryBofModel = require("../../models/models-bof/category-bof-model");
 const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
+const UserBofModel = require("../../models/models-bof/user-bof-model");
 const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
 const ProductModel = require("../../models/models-seller/product-model");
 const SellerModel = require("../../models/models-seller/seller-model");
@@ -87,10 +88,29 @@ exports.confirmSeller = async (req, res) => {
         msg: "Seller not found",
       });
     }
+
     await SellerModel.update(
       { seller_status: req.body.seller_status },
       { where: { id: id } }
     );
+
+    const data_update = await SellerModel.findByPk(id);
+    if (data_update.seller_status === "active") {
+      const customer_data = await CustomerCusModel.findByPk(result.customer_id);
+      const user_req = {
+        fullname: customer_data.fullname,
+        username: customer_data.email,
+        password: customer_data.password,
+        user_type: "seller",
+        seller_id: data_update.id,
+      };
+      await UserBofModel.create(user_req);
+    } else {
+      await UserBofModel.destroy({
+        where: { seller_id: data_update.id },
+      });
+    }
+
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
       msg: "Confirm seller successfully",

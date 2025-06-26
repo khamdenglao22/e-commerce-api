@@ -158,7 +158,7 @@ exports.findOrderDetail = async (req, res) => {
         {
           model: OrderDetailModel,
           as: "order_details",
-          attributes: ["id", "qty", "price",'order_detail_status'],
+          attributes: ["id", "qty", "price", "order_detail_status"],
           include: [
             {
               model: ProductModel,
@@ -226,5 +226,22 @@ exports.findOrderDetail = async (req, res) => {
     res
       .status(HTTP_BAD_REQUEST)
       .json({ status: HTTP_BAD_REQUEST, msg: error.message });
+  }
+};
+
+exports.findCountOrderAll = async (req, res) => {
+  const { cus_id } = req.customer;
+  const { order_status } = req.query;
+  try {
+    const order = await OrderModel.count({
+      where: { customer_id: cus_id, order_status: order_status },
+    });
+
+    res.status(HTTP_SUCCESS).json({ status: HTTP_SUCCESS, count: order });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
   }
 };
