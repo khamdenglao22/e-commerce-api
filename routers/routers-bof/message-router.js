@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const {
   createConversation,
+  getConversationsByUserId,
   findAllMessageBetweenUsers,
   findBrandById,
   createMessage,
@@ -9,6 +10,7 @@ const {
 } = require("../../controllers/controllers-bof/message-controller");
 
 router.post("/conversation", createConversation);
+router.get("/conversation/:userId/:role/:type", getConversationsByUserId);
 
 // router.get("/", findAllMessage);
 router.get("/:user1/:user2/:role", findAllMessageBetweenUsers);

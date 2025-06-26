@@ -1,6 +1,9 @@
 // const BrandBofModel = require("../../models/models-bof/brand-bof-model");
 const MessageModel = require("../../models/models-bof/message-model");
 const ConversationModel = require("../../models/models-bof/conversation-model");
+const UserBofModel = require("../../models/models-bof/user-bof-model");
+const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
+const SellerModel = require("../../models/models-seller/seller-model");
 const { BASE_MEDIA_URL, BRAND_MEDIA_URL } = require("../../utils/constant");
 const {
   HTTP_BAD_REQUEST,
@@ -51,6 +54,107 @@ exports.createConversation = async (req, res) => {
       data: result,
     });
   } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.getConversationsByUserId = async (req, res) => {
+  try {
+    const { userId, type, role } = req.params;
+    const parsedUserId = parseInt(userId);
+
+    if (!parsedUserId || !type || !role) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "userId, type, and role are required.",
+      });
+    }
+
+    // Filter conversations that match the conversation role and contain userId
+    const conversations = await ConversationModel.findAll({
+      where: {
+        role: role, // role is now the column name in DB (adminAndSeller, etc.)
+        [Op.and]: [
+          sequelize.where(
+            sequelize.fn(
+              "JSON_CONTAINS",
+              sequelize.col("users"),
+              JSON.stringify([parsedUserId])
+            ),
+            1
+          ),
+        ],
+      },
+    });
+
+    const enrichedConversations = await Promise.all(
+      conversations.map(async (conv) => {
+        const usersArray = Array.isArray(conv.users)
+          ? conv.users
+          : JSON.parse(conv.users);
+
+        const otherUserId = usersArray.find((id) => id !== parsedUserId);
+
+        let otherUser = null;
+
+        // Based on conversation role and current user's type
+        switch (role) {
+          case "adminAndSeller":
+            if (type === "admin") {
+              otherUser = await SellerModel.findOne({
+                where: { id: otherUserId },
+              });
+            } else {
+              otherUser = await UserBofModel.findOne({
+                where: { id: otherUserId },
+              });
+            }
+            break;
+
+          case "adminAndCustomer":
+            if (type === "admin") {
+              otherUser = await CustomerCusModel.findOne({
+                where: { id: otherUserId },
+              });
+            } else {
+              otherUser = await UserBofModel.findOne({
+                where: { id: otherUserId },
+              });
+            }
+            break;
+
+          case "sellerAndCustomer":
+            if (type === "seller") {
+              otherUser = await CustomerCusModel.findOne({
+                where: { id: otherUserId },
+              });
+            } else {
+              otherUser = await SellerModel.findOne({
+                where: { id: otherUserId },
+              });
+            }
+            break;
+
+          default:
+            break;
+        }
+
+        return {
+          ...conv.toJSON(),
+          otherUser,
+        };
+      })
+    );
+
+    res.status(200).json({
+      status: 200,
+      data: enrichedConversations,
+    });
+  } catch (error) {
+    console.error("Conversation Fetch Error:", error);
     res.status(HTTP_BAD_REQUEST).json({
       status: HTTP_BAD_REQUEST,
       msg: error.message,
