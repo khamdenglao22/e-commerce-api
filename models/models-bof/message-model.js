@@ -1,5 +1,6 @@
 const sequelize = require("../../config");
 const { DataTypes } = require("sequelize");
+const ConversationModel = require("./conversation-model");
 
 const MessageModel = sequelize.define(
   "Message",
@@ -13,7 +14,7 @@ const MessageModel = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "Conversation",
+        model: ConversationModel,
         key: "id",
       },
     },

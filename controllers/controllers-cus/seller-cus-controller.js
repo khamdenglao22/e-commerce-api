@@ -1,24 +1,23 @@
 const SellerModel = require("../../models/models-seller/seller-model");
+require("dotenv").config();
 const {
   HTTP_SUCCESS,
   HTTP_BAD_REQUEST,
   HTTP_CREATED,
+  HTTP_NOT_FOUND,
 } = require("../../utils/http_status");
 const path = require("path");
 const { Op } = require("sequelize");
 const fs = require("fs");
 const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
+const UserBofModel = require("../../models/models-bof/user-bof-model");
+const CryptoJS = require("crypto-js");
 
 exports.createSeller = async (req, res) => {
   try {
     const { cus_id } = req.customer;
-    console.log("req.customer====", req.customer);
-    if (!cus_id) {
-      return res.status(HTTP_BAD_REQUEST).json({
-        status: HTTP_BAD_REQUEST,
-        msg: "Customer ID not found",
-      });
-    }
+    // console.log("req.customer====", req.customer);
+
     if (!req.files) {
       return res.status(HTTP_BAD_REQUEST).json({
         status: HTTP_BAD_REQUEST,
@@ -27,17 +26,17 @@ exports.createSeller = async (req, res) => {
     }
     req.body.customer_id = cus_id;
     req.body.store_name = req.body.store_name.trim();
-    const existingSeller = await SellerModel.findOne({
-      where: {
-        store_name: req.body.store_name,
-      },
-    });
-    if (existingSeller) {
-      return res.status(HTTP_BAD_REQUEST).json({
-        status: HTTP_BAD_REQUEST,
-        msg: "Store name already exists",
-      });
-    }
+    // const existingSeller = await SellerModel.findOne({
+    //   where: {
+    //     store_name: req.body.store_name,
+    //   },
+    // });
+    // if (existingSeller) {
+    //   return res.status(HTTP_BAD_REQUEST).json({
+    //     status: HTTP_BAD_REQUEST,
+    //     msg: "Store name already exists",
+    //   });
+    // }
     if (req.files && req.files.front_document && req.files.back_certificate) {
       const front_document = req.files.front_document;
       const back_certificate = req.files.back_certificate;
@@ -75,29 +74,31 @@ exports.createSeller = async (req, res) => {
       req.body.back_certificate = filename_back_certificate;
     }
 
-    const customer_data = await CustomerCusModel.findByPk(cus_id);
+    // const customer_data = await CustomerCusModel.findByPk(cus_id);
+
     // create seller to user
+    await SellerModel.create(req.body);
 
     // start transaction
-    await sequelize.transaction(async (t) => {
-      // create seller
-      await SellerModel.create(req.body, {
-        transaction: t,
-      });
+    // await sequelize.transaction(async (t) => {
+    //   // create seller
+    //   await SellerModel.create(req.body, {
+    //     transaction: t,
+    //   });
 
-      //   const user_req = {
-      //     fullname: customer_data.fullname,
-      //     username: customer_data.email,
-      //     password: customer_data.password,
-      //     role_id: 1,
-      //     user_type: "seller",
-      //     seller_id: seller_new.id,
-      //   };
+    //     const user_req = {
+    //       fullname: customer_data.fullname,
+    //       username: customer_data.email,
+    //       password: customer_data.password,
+    //       role_id: 1,
+    //       user_type: "seller",
+    //       seller_id: seller_new.id,
+    //     };
 
-      //   await UserBofModel.create(user_req, {
-      //     transaction: t,
-      //   });
-    });
+    //     await UserBofModel.create(user_req, {
+    //       transaction: t,
+    //     });
+    // });
 
     res.status(HTTP_CREATED).json({
       status: HTTP_CREATED,
@@ -114,15 +115,24 @@ exports.createSeller = async (req, res) => {
 exports.findSellerByCusId = async (req, res) => {
   const { cus_id } = req.customer;
   try {
-    const result = await SellerModel.findOne({
+    let result = await SellerModel.findOne({
       where: { customer_id: cus_id },
-      include: [
-        {
-          model: CustomerCusModel,
-          as: "customer",
-        },
-      ],
     });
+
+    if (!result) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "Seller not found",
+      });
+    }
+
+    const userData = await UserBofModel.findOne({
+      where: { seller_id: result.id },
+    });
+
+    console.log(`password : ${userData.dataValues.password}`);
+
+    result.dataValues.data_user = userData;
 
     res.status(HTTP_SUCCESS).json({ status: HTTP_SUCCESS, data: result });
   } catch (e) {

@@ -9,6 +9,11 @@ const jwt = require("jsonwebtoken");
 const { userLoginSchema } = require("../../schemas/user-schemas");
 const UserBofModel = require("../../models/models-bof/user-bof-model");
 
+function passwordHash(password) {
+  const salt = bcrypt.genSaltSync(10);
+  return bcrypt.hashSync(password, salt);
+}
+
 exports.loginUser = async (req, res) => {
   try {
     const { error, value } = userLoginSchema.validate(req.body);
@@ -23,10 +28,11 @@ exports.loginUser = async (req, res) => {
 
     const user = await UserBofModel.findOne({
       where: {
-        [Op.and]: [{ username: username }],
+        [Op.and]: [{ username: username }, { status: true }],
       },
     });
-    if (!user || !bcrypt.compareSync(password, user.password)) {
+
+    if (!user || !bcrypt.compareSync(password, passwordHash(user.password))) {
       return res.status(HTTP_FORBIDDEN).send({
         status: HTTP_FORBIDDEN,
         msg: "username ຫຼື password ບໍ່ຖືກຕ້ອງ",

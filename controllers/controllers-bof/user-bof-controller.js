@@ -84,7 +84,7 @@ exports.createUser = async (req, res) => {
       });
     }
     // hash password
-    req.body.password = passwordHash(req.body.password);
+    // req.body.password = passwordHash(req.body.password);
     req.body.user_type = "officer";
     let result = await UserBofModel.create(req.body);
     delete result.dataValues.password;
