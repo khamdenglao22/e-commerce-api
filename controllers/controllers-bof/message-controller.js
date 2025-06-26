@@ -63,7 +63,8 @@ exports.createConversation = async (req, res) => {
 
 exports.getConversationsByUserId = async (req, res) => {
   try {
-    const { userId, type, role } = req.params;
+    const { userId, type, role } = req.query;
+    // const { type, role } = req.params;
     const parsedUserId = parseInt(userId);
 
     if (!parsedUserId || !type || !role) {
@@ -193,6 +194,27 @@ exports.findAllMessageBetweenUsers = async (req, res) => {
           },
           role ? { messageRole: role } : {},
         ],
+      },
+    });
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: result,
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.findAllMessageByConversationId = async (req, res) => {
+  try {
+    const { conversationId } = req.query;
+    let result = await MessageModel.findAll({
+      order: [["id", "ASC"]],
+      where: {
+        conversationId: conversationId,
       },
     });
     res.status(HTTP_SUCCESS).json({

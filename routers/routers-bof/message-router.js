@@ -3,6 +3,7 @@ const {
   createConversation,
   getConversationsByUserId,
   findAllMessageBetweenUsers,
+  findAllMessageByConversationId,
   findBrandById,
   createMessage,
   updateBrand,
@@ -10,10 +11,11 @@ const {
 } = require("../../controllers/controllers-bof/message-controller");
 
 router.post("/conversation", createConversation);
-router.get("/conversation/:userId/:role/:type", getConversationsByUserId);
+router.get("/conversation", getConversationsByUserId);
 
 // router.get("/", findAllMessage);
 router.get("/:user1/:user2/:role", findAllMessageBetweenUsers);
+router.get("/messageByconversationId", findAllMessageByConversationId);
 // router.get("/:id", findBrandById);
 router.post("/", createMessage);
 
