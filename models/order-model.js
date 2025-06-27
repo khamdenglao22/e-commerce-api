@@ -53,4 +53,14 @@ const OrderModel = sequelize.define(
   }
 );
 
+OrderModel.belongsTo(CustomerCusModel, {
+  foreignKey: "customer_id",
+  as: "customer",
+});
+
+OrderModel.belongsTo(AddressCusModel, {
+  foreignKey: "shipping_address",
+  as: "address",
+});
+
 module.exports = OrderModel;
