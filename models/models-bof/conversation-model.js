@@ -16,7 +16,11 @@ const ConversationModel = sequelize.define(
     userKey: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true, 
+    },
+    role: {
+      type: DataTypes.ENUM("adminAndSeller", "adminAndCustomer", "sellerAndCustomer"),
+      defaultValue: "adminAndSeller",
+      allowNull: true,
     },
   },
   {
