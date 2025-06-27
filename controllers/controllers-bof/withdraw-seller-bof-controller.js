@@ -152,7 +152,7 @@ exports.confirmWithdrawBof = async (req, res) => {
       image.mv(
         path.join(__dirname, `../../uploads/images/deposit/${filename}`)
       );
-      console.log("Image uploaded successfully===",filename);
+      console.log("Image uploaded successfully===", filename);
       withdraw.image = filename;
     }
 
@@ -165,7 +165,7 @@ exports.confirmWithdrawBof = async (req, res) => {
         wallet_type: "widthdraw",
         seller_id: withdraw.seller_id,
         user_id: user_id,
-        deposit_id: withdraw.id,
+        withdraw_id: withdraw.id,
       });
     }
 

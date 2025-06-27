@@ -11,7 +11,6 @@ const { Op } = require("sequelize");
 const fs = require("fs");
 const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
 const UserBofModel = require("../../models/models-bof/user-bof-model");
-const CryptoJS = require("crypto-js");
 
 exports.createSeller = async (req, res) => {
   try {

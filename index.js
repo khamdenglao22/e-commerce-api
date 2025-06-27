@@ -48,6 +48,7 @@ const depositSellerBofRoute = require("./routers/routers-bof/deposit-seller-bof-
 const withdrawSellerBofRoute = require("./routers/routers-bof/withdraw-seller-bof-router");
 const slideImageRoute = require("./routers/routers-bof/slide-image-router");
 const messageRoute = require("./routers/routers-bof/message-router");
+const orderBofRoute = require("./routers/routers-bof/order-bof-router");
 
 app.use("/api/v1/brands", brandRoute);
 app.use("/api/v1/category", categoryRoute);
@@ -65,6 +66,7 @@ app.use("/api/v1/deposit_seller", getCurrentUser, depositSellerBofRoute);
 app.use("/api/v1/withdraw_seller", getCurrentUser, withdrawSellerBofRoute);
 app.use("/api/v1/slide_image", slideImageRoute);
 app.use("/api/v1/message", messageRoute);
+app.use("/api/v1/order", getCurrentUser, orderBofRoute);
 
 // ສ່ວນສຳລັບ API Customer ສໍາລັບສ່ວນຂອງ ລູກຄ້າ
 const {
@@ -103,10 +105,14 @@ const sellerRoute = require("./routers/routers-seller/seller-router");
 const productRoute = require("./routers/routers-seller/product-router");
 const depositSellerRoute = require("./routers/routers-seller/deposit-router");
 const withdrawSellerRoute = require("./routers/routers-seller/withdraw-router");
+const orderSellerRoute = require("./routers/routers-seller/order-seller-router");
+const walletSellerRoute = require("./routers/routers-seller/wallet-seller-router");
 
 app.use("/api/v1/sell/info", sellerRoute);
 app.use("/api/v1/sell/products", getCurrentSeller, productRoute);
 app.use("/api/v1/sell/deposit_seller", getCurrentSeller, depositSellerRoute);
 app.use("/api/v1/sell/withdraw_seller", getCurrentSeller, withdrawSellerRoute);
+app.use("/api/v1/sell/order", getCurrentSeller, orderSellerRoute);
+app.use("/api/v1/sell/wallet", getCurrentSeller, walletSellerRoute);
 
 app.listen(port, () => console.log(`listening on http://localhost:${port}`));

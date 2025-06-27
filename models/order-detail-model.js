@@ -66,6 +66,11 @@ OrderModel.hasMany(OrderDetailModel, {
   as: "order_details",
 });
 
+OrderDetailModel.belongsTo(OrderModel, {
+  foreignKey: "order_id",
+  as: "order",
+});
+
 OrderDetailModel.belongsTo(ProductModel, {
   foreignKey: "product_id",
   as: "product_details",

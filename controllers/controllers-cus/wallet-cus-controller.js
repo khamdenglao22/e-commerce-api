@@ -58,7 +58,10 @@ exports.findCustomerWallet = async (req, res) => {
       0
     );
 
-    const totalBalance = totalBalanceIn - (totalBalanceOut + totalBalanceOrder);
+    let totalBalance = totalBalanceIn - (totalBalanceOut + totalBalanceOrder);
+    if (totalBalance < 0) {
+      totalBalance = 0;
+    }
 
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
