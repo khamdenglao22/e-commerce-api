@@ -10,6 +10,11 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const SellerModel = require("../../models/models-seller/seller-model");
 
+function passwordHash(password) {
+  const salt = bcrypt.genSaltSync(10);
+  return bcrypt.hashSync(password, salt);
+}
+
 exports.loginCustomer = async (req, res) => {
   try {
     const { error, value } = customerLoginSchema.validate(req.body);
@@ -27,7 +32,10 @@ exports.loginCustomer = async (req, res) => {
         [Op.and]: [{ email: email }],
       },
     });
-    if (!customer || !bcrypt.compareSync(password, customer.password)) {
+    if (
+      !customer ||
+      !bcrypt.compareSync(password, passwordHash(customer.password))
+    ) {
       return res.status(HTTP_FORBIDDEN).send({
         status: HTTP_FORBIDDEN,
         msg: "username ຫຼື password ບໍ່ຖືກຕ້ອງ",
@@ -64,9 +72,7 @@ exports.getCurrentCustomer = async (req, res, next) => {
 
     const customer = await CustomerCusModel.findByPk(decoded.cus_id);
     if (!customer) {
-      return res
-        .status(401)
-        .send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ" });
+      return res.status(401).send({ status: 401, msg: "ກະລຸນາເຂົ້າສູ່ລະບົບ" });
     }
 
     req.customer = {

@@ -34,7 +34,7 @@ exports.createCustomer = async (req, res) => {
 
     req.body.password = req.body.password.trim();
     // hash password
-    req.body.password = passwordHash(req.body.password);
+    // req.body.password = passwordHash(req.body.password);
     let result = await CustomerCusModel.create(req.body);
     delete result.dataValues.password;
     const token = jwt.sign(
