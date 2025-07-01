@@ -38,7 +38,7 @@ exports.loginCustomer = async (req, res) => {
     ) {
       return res.status(HTTP_FORBIDDEN).send({
         status: HTTP_FORBIDDEN,
-        msg: "username ຫຼື password ບໍ່ຖືກຕ້ອງ",
+        msg: "Incorrect username or password.",
       });
     }
 
