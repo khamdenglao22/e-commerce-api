@@ -129,13 +129,13 @@ exports.findSellerByCusId = async (req, res) => {
       where: { seller_id: result.id },
     });
 
-    console.log(`password : ${userData.dataValues.password}`);
+    // console.log(`password : ${userData.dataValues.password}`);
 
     result.dataValues.data_user = userData;
 
     res.status(HTTP_SUCCESS).json({ status: HTTP_SUCCESS, data: result });
   } catch (e) {
     console.log(e);
-    res.status(HTTP_BAD_REQUEST).json({ status: HTTP_BAD_REQUEST, msg: e });
+    res.status(HTTP_BAD_REQUEST).json({ status: HTTP_BAD_REQUEST, msg: e.message });
   }
 };
