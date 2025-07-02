@@ -1,4 +1,4 @@
-const { Sequelize } = require("sequelize");
+const { Sequelize, Op } = require("sequelize");
 const ProductModel = require("../../models/models-seller/product-model");
 const { HTTP_SUCCESS, HTTP_BAD_REQUEST } = require("../../utils/http_status");
 const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
@@ -119,5 +119,90 @@ exports.findProductById = async (req, res) => {
       status: HTTP_BAD_REQUEST,
       msg: error.message,
     });
+  }
+};
+
+const getPagination = (page, size) => {
+  const limit = size ? +size : 10;
+  const offset = page && page > 0 ? (page - 1) * limit : 0;
+  //   console.log("+size", +size, "offset", offset);
+  return { limit, offset };
+};
+
+const getPagingData = (data, page, limit) => {
+  const { count: totalItems, rows: result } = data;
+  const currentPage = page ? +page : 0;
+  const totalPages = Math.ceil(totalItems / limit);
+  return { totalItems, result, totalPages, currentPage };
+};
+
+exports.findAllProductSearch = async (req, res) => {
+  const { page, size, seller_id, category_id, brand_id } = req.query;
+  const { limit, offset } = getPagination(page, size);
+
+  let filter = {};
+  let filterBySeller = {};
+  if (seller_id) {
+    filterBySeller = { seller_id };
+  }
+  // console.log("filter", filter);
+
+  if (category_id && !brand_id) {
+    filter = {
+      [Op.and]: [{ category_id: category_id }],
+    };
+  } else if (!category_id && brand_id) {
+    filter = {
+      [Op.and]: [{ brand_id: brand_id }],
+    };
+  } else if (category_id && brand_id) {
+    filter = {
+      [Op.and]: [{ category_id: category_id }, { brand_id: brand_id }],
+    };
+  }
+
+  try {
+    let productMaster = await ProductModel.findAndCountAll({
+      order: [["id", "DESC"]],
+      where: { product_status: "active", ...filterBySeller },
+      limit,
+      offset,
+      attributes: { exclude: ["createdAt", "updatedAt"] },
+      include: [
+        {
+          model: ProductMasterBofModel,
+          as: "product_master",
+          where: { ...filter },
+          // include: [
+          //   {
+          //     model: BrandBofModel,
+          //     as: "brand",
+          //     attributes: { exclude: ["createdAt", "updatedAt"] },
+          //   },
+          //   {
+          //     model: CategoryBofModel,
+          //     as: "category",
+          //     attributes: { exclude: ["createdAt", "updatedAt"] },
+          //   },
+          // ],
+        },
+      ],
+    });
+
+    const response = getPagingData(productMaster, page, limit);
+    response.result = response.result.map((our) => {
+      if (our.product_master.image) {
+        our.product_master.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.product_master.image}`;
+      } else {
+        our.product_master.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+      }
+      return our;
+    });
+
+    res.json(response);
+  } catch (error) {
+    res
+      .status(HTTP_BAD_REQUEST)
+      .json({ status: HTTP_BAD_REQUEST, msg: error.message });
   }
 };

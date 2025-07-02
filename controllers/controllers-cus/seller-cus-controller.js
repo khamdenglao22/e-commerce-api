@@ -118,24 +118,26 @@ exports.findSellerByCusId = async (req, res) => {
       where: { customer_id: cus_id },
     });
 
-    if (!result) {
-      return res.status(HTTP_NOT_FOUND).json({
-        status: HTTP_NOT_FOUND,
-        msg: "Seller not found",
+    // if (!result) {
+    //   return res.status(HTTP_NOT_FOUND).json({
+    //     status: HTTP_NOT_FOUND,
+    //     msg: "Seller not found",
+    //   });
+    // }
+    if (result) {
+      const userData = await UserBofModel.findOne({
+        where: { seller_id: result.id },
       });
+      result.dataValues.data_user = userData;
     }
 
-    const userData = await UserBofModel.findOne({
-      where: { seller_id: result.id },
-    });
-
     // console.log(`password : ${userData.dataValues.password}`);
-
-    result.dataValues.data_user = userData;
 
     res.status(HTTP_SUCCESS).json({ status: HTTP_SUCCESS, data: result });
   } catch (e) {
     console.log(e);
-    res.status(HTTP_BAD_REQUEST).json({ status: HTTP_BAD_REQUEST, msg: e.message });
+    res
+      .status(HTTP_BAD_REQUEST)
+      .json({ status: HTTP_BAD_REQUEST, msg: e.message });
   }
 };
