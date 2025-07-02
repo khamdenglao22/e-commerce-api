@@ -1,3 +1,4 @@
+const { Sequelize } = require("sequelize");
 const CategoryBofModel = require("../../models/models-bof/category-bof-model");
 const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
 const ProductModel = require("../../models/models-seller/product-model");
@@ -11,7 +12,10 @@ const { HTTP_SUCCESS, HTTP_BAD_REQUEST } = require("../../utils/http_status");
 exports.customerFindCategory = async (req, res) => {
   const { size } = req.query;
   try {
-    let result = await CategoryBofModel.findAll({ limit: size ? +size : 8 });
+    let result = await CategoryBofModel.findAll({
+      limit: size ? +size : 8,
+      order: Sequelize.literal("RAND()"),
+    });
     result.map((our) => {
       if (our.image) {
         our.dataValues.image = `${CATEGORY_MEDIA_URL}/${our.image}`;
