@@ -28,6 +28,11 @@ exports.findProductSearch = async (req, res) => {
             ],
           },
         },
+        {
+          model: SellerModel,
+          as: "seller",
+          attributes: ["id", "store_name", "email"],
+        },
       ],
     });
 

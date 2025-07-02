@@ -20,6 +20,11 @@ exports.findProduct = async (req, res) => {
           model: ProductMasterBofModel,
           as: "product_master",
         },
+        {
+          model: SellerModel,
+          as: "seller",
+          attributes: ["id", "store_name", "email"],
+        },
       ],
       order: Sequelize.literal("RAND()"),
     });
@@ -185,6 +190,11 @@ exports.findAllProductSearch = async (req, res) => {
           //     attributes: { exclude: ["createdAt", "updatedAt"] },
           //   },
           // ],
+        },
+        {
+          model: SellerModel,
+          as: "seller",
+          attributes: ["id", "store_name", "email"],
         },
       ],
     });
