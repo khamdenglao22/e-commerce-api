@@ -231,13 +231,24 @@ exports.findOrderDetail = async (req, res) => {
 
 exports.findCountOrderAll = async (req, res) => {
   const { cus_id } = req.customer;
-  const { order_status } = req.query;
   try {
-    const order = await OrderModel.count({
-      where: { customer_id: cus_id, order_status: order_status },
+    const orderSuccess = await OrderModel.count({
+      where: {
+        customer_id: cus_id,
+        order_status: ["success", "confirm", "delivery", "rejected"],
+      },
     });
 
-    res.status(HTTP_SUCCESS).json({ status: HTTP_SUCCESS, count: order });
+    const orderComplete = await OrderModel.count({
+      where: {
+        customer_id: cus_id,
+        order_status: "complete",
+      },
+    });
+
+    res
+      .status(HTTP_SUCCESS)
+      .json({ status: HTTP_SUCCESS, orderSuccess, orderComplete });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({
       status: HTTP_BAD_REQUEST,

@@ -14,6 +14,7 @@ const {
 } = require("../../utils/http_status");
 const AddressCusModel = require("../../models/models-cus/address-cus-model");
 const WalletSellerModel = require("../../models/models-seller/wallet-seller-model");
+const sequelize = require("../../config");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
@@ -258,8 +259,11 @@ exports.confirmOrderBof = async (req, res) => {
       });
     }
 
+    const transaction = await sequelize.transaction();
+
     orderDetail.order_detail_status = req.body.order_detail_status;
-    await orderDetail.save();
+    orderDetail.reason = req.body.reason;
+    await orderDetail.save({ transaction });
 
     const checkOrder = await OrderModel.findOne({
       where: {
@@ -279,38 +283,10 @@ exports.confirmOrderBof = async (req, res) => {
 
     if (allConfirm) {
       checkOrder.order_status = req.body.order_detail_status;
-      await checkOrder.save();
+      await checkOrder.save({ transaction });
     }
 
-    // bonus form sale
-    let bonus = 0;
-
-    console.log(
-      `-------------------orderDetail.dataValues.total_amount : ${orderDetail.dataValues.order.total_amount}`
-    );
-
-    if (orderDetail.order_detail_status === "complete") {
-      if (Number(orderDetail.dataValues.price) <= 100) {
-        bonus =
-          (Number(orderDetail.dataValues.price) * 20) / 100 +
-          Number(orderDetail.dataValues.price);
-      } else {
-        bonus =
-          (Number(orderDetail.dataValues.price) * 35) / 100 +
-          Number(orderDetail.dataValues.price);
-      }
-
-      await WalletSellerModel.create({
-        balance: bonus,
-        bonus: 0,
-        wallet_type: "pro",
-        seller_id: orderDetail.dataValues.product.seller_id,
-        user_id: user_id,
-        order_id: orderDetail.dataValues.order_id,
-      });
-    }
-
-    console.log(`all Confirm : ${allConfirm}`);
+    transaction.commit();
 
     res
       .status(HTTP_SUCCESS)

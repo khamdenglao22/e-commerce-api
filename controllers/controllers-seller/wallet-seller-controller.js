@@ -1,50 +1,87 @@
 const ProductModel = require("../../models/models-seller/product-model");
-const WalletSeller = require("../../models/models-seller/wallet-seller-model");
+const WalletSellerModel = require("../../models/models-seller/wallet-seller-model");
 const WithdrawSellerModel = require("../../models/models-seller/withdraw-seller-model");
 const OrderDetailModel = require("../../models/order-detail-model");
 const OrderModel = require("../../models/order-model");
+const { fn, col, literal, Sequelize } = require("sequelize");
 
 exports.findSumWallet = async (req, res) => {
   const { seller_id } = req.seller;
   try {
-    let totalWallet = await WalletSeller.sum("balance", {
-      where: { wallet_Type: ["deposit", "pro"], seller_id },
+    let totalWalletBalance = await WalletSellerModel.sum("balance", {
+      where: { wallet_Type: ["deposit"], seller_id },
     });
+    if (totalWalletBalance === null) totalWalletBalance = 0;
 
-    let totalRecharge = await WalletSeller.sum("balance", {
-      where: { wallet_Type: "deposit", seller_id },
-    });
-
-    let totalOrder = await OrderDetailModel.sum("price", {
-      where: { order_detail_status: ["confirm", "delivery"] },
+    let dataProfit = await WalletSellerModel.findAll({
+      where: { wallet_Type: "profit", seller_id },
       include: [
         {
-          model: ProductModel,
-          as: "product",
-          where: { seller_id },
+          model: OrderDetailModel,
+          as: "order_details",
+          where: { order_detail_status: "complete" },
         },
       ],
     });
 
-    let totalWithdraw = await WalletSeller.sum("balance", {
-      where: { seller_id, wallet_Type: "widthdraw" },
+    let totalProfitAmount = 0;
+    if (dataProfit.length > 0) {
+      totalProfitAmount = dataProfit.reduce(
+        (sum, item) => parseFloat(sum) + parseFloat(item.bonus),
+        0
+      );
+    }
+
+    let dataFrozen = await WalletSellerModel.findAll({
+      where: { wallet_Type: "profit", seller_id },
+      include: [
+        {
+          model: OrderDetailModel,
+          as: "order_details",
+          where: { order_detail_status: ["confirm", "delivery"] },
+        },
+      ],
     });
 
-    if (totalWithdraw === null) totalWithdraw = 0;
-    if (totalOrder === null) totalOrder = 0;
-    if (totalRecharge === null) totalRecharge = 0;
-    if (totalWallet === null) totalWallet = 0;
+    let totalFrozenAmount = 0;
+    if (dataFrozen.length > 0) {
+      totalFrozenAmount = dataFrozen.reduce(
+        (sum, item) => parseFloat(sum) + parseFloat(item.bonus),
+        0
+      );
+    }
 
-    totalWallet = totalWallet - (totalWithdraw + totalOrder);
+    let totalWithdrawAmount = await WithdrawSellerModel.sum("amount", {
+      where: { withdraw_status: ["approved"], seller_id },
+    });
+    if (totalWithdrawAmount === null) totalWithdrawAmount = 0;
+
+    let dataOrderAmount = await OrderDetailModel.findAll({
+      where: { order_detail_status: ["confirm", "delivery"] },
+      include: [{ model: ProductModel, as: "product", where: { seller_id } }],
+    });
+
+    let totalOrderAmount = 0;
+    if (dataOrderAmount.length > 0) {
+      totalOrderAmount = dataOrderAmount.reduce(
+        (sum, item) => sum + item.price * item.qty,
+        0
+      );
+    }
+
+    totalWalletBalance =
+      totalWalletBalance +
+      totalProfitAmount -
+      (totalOrderAmount + totalWithdrawAmount);
 
     res.status(200).json({
-      status: 200,
-      totalWallet,
-      totalFrozen: totalOrder,
-      totalWithdraw,
-      totalRecharge,
+      totalWalletBalance,
+      totalProfitAmount,
+      totalFrozenAmount,
+      totalWithdrawAmount,
+      totalOrderAmount,
     });
   } catch (error) {
-    res.status(400).json({ status: 400, msg: error });
+    res.status(400).json({ status: 400, msg: error.message });
   }
 };

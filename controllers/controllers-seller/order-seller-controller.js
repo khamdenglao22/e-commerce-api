@@ -12,6 +12,8 @@ const {
   HTTP_NOT_FOUND,
 } = require("../../utils/http_status");
 const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
+const WalletSellerModel = require("../../models/models-seller/wallet-seller-model");
+const sequelize = require("../../config");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
@@ -126,7 +128,7 @@ exports.findOrderSellerList = async (req, res) => {
 
 exports.confirmOrderSeller = async (req, res) => {
   const { id } = req.params;
-  // const { seller_id } = req.seller;
+  const { seller_id } = req.seller;
   try {
     const orderDetail = await OrderDetailModel.findOne({
       where: {
@@ -160,16 +162,77 @@ exports.confirmOrderSeller = async (req, res) => {
       (item) => item.order_detail_status === "confirm"
     );
 
+    const transaction = await sequelize.transaction();
+
     if (allConfirm) {
       checkOrder.order_status = "confirm";
-      await checkOrder.save();
+      await checkOrder.save({ transaction });
+    }
+
+    // bonus form sale
+    let bonus = 0;
+
+    if (orderDetail.order_detail_status === "confirm") {
+      const total_price =
+        orderDetail.dataValues.price * orderDetail.dataValues.qty;
+
+      if (total_price <= 999) {
+        bonus = (total_price * 20) / 100 + total_price;
+      } else {
+        bonus = (total_price * 35) / 100 + total_price;
+      }
+
+      await WalletSellerModel.create(
+        {
+          balance: 0,
+          bonus: bonus,
+          wallet_type: "profit",
+          seller_id: seller_id,
+          order_detail_id: orderDetail.dataValues.id,
+        },
+        { transaction }
+      );
     }
 
     console.log(`all Confirm : ${allConfirm}`);
-
+    transaction.commit();
     res
       .status(HTTP_SUCCESS)
       .json({ status: HTTP_SUCCESS, msg: "Confirm order successfully" });
+  } catch (error) {
+    res
+      .status(HTTP_BAD_REQUEST)
+      .json({ status: HTTP_BAD_REQUEST, msg: error.message });
+  }
+};
+
+exports.findCountOrder = async (req, res) => {
+  const { seller_id } = req.seller;
+  try {
+    const totalNewOrder = await OrderDetailModel.count({
+      where: {
+        order_detail_status: "success",
+      },
+      include: [
+        {
+          model: ProductModel,
+          as: "product",
+          where: { seller_id },
+        },
+      ],
+    });
+
+    const totalAllOrder = await OrderDetailModel.count({
+      include: [
+        {
+          model: ProductModel,
+          as: "product",
+          where: { seller_id },
+        },
+      ],
+    });
+
+    res.status(HTTP_SUCCESS).json({ totalNewOrder, totalAllOrder });
   } catch (error) {
     res
       .status(HTTP_BAD_REQUEST)
