@@ -239,3 +239,21 @@ exports.findAllProductMaster = async (req, res) => {
       .json({ status: HTTP_BAD_REQUEST, msg: error.message });
   }
 };
+
+exports.findCountAllProduct = async (req, res) => {
+  const { seller_id } = req.seller;
+  try {
+    const totalAllProduct = await ProductModel.count({
+      where: {
+        product_status: "active",
+        seller_id,
+      },
+    });
+
+    res.status(HTTP_SUCCESS).json({ totalAllProduct });
+  } catch (error) {
+    res
+      .status(HTTP_BAD_REQUEST)
+      .json({ status: HTTP_BAD_REQUEST, msg: error.message });
+  }
+};

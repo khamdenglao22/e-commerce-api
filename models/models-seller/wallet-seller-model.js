@@ -1,5 +1,7 @@
 const sequelize = require("../../config");
 const { DataTypes } = require("sequelize");
+const OrderModel = require("../order-model");
+const OrderDetailModel = require("../order-detail-model");
 
 const WalletSellerModel = sequelize.define(
   "WalletSellerModel",
@@ -10,11 +12,11 @@ const WalletSellerModel = sequelize.define(
       primaryKey: true,
     },
     balance: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
     bonus: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
     },
     wallet_type: {
@@ -37,7 +39,7 @@ const WalletSellerModel = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    order_id: {
+    order_detail_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
@@ -47,5 +49,10 @@ const WalletSellerModel = sequelize.define(
     timestamps: true,
   }
 );
+
+WalletSellerModel.belongsTo(OrderDetailModel, {
+  foreignKey: "order_detail_id",
+  as: "order_details",
+});
 
 module.exports = WalletSellerModel;
