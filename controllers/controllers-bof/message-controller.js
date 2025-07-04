@@ -165,6 +165,21 @@ exports.getConversationsByUserId = async (req, res) => {
 
 exports.createMessage = async (req, res) => {
   try {
+    if (req.files && req.files.image) {
+      let image = req.files.image;
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+      if (!allowFiles.includes(image.mimetype)) {
+        return res.json({
+          status: 400,
+          msg: "ຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
+        });
+      }
+      const ext = path.extname(image.name);
+      const filename = Date.now() + ext;
+      image.mv(path.join(__dirname, `../../uploads/images/brands/${filename}`));
+      req.body.file = filename;
+      req.body.messageType = "image";
+    }
     const result = await MessageModel.create(req.body);
     res.status(HTTP_CREATED).json({
       status: HTTP_CREATED,
@@ -208,6 +223,33 @@ exports.findAllMessageBetweenUsers = async (req, res) => {
   }
 };
 
+exports.findAllMessageUnReadByUserId = async (req, res) => {
+  try {
+    const { userId, role } = req.params;
+    let result = await MessageModel.findAll({
+      order: [["id", "ASC"]],
+      where: {
+        [Op.and]: [
+          {
+            [Op.or]: [{ receiver_id: userId }],
+          },
+          { isRead: false },
+          role ? { messageRole: role } : {},
+        ],
+      },
+    });
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: result,
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
 exports.findAllMessageByConversationId = async (req, res) => {
   try {
     const { conversationId } = req.query;
@@ -216,6 +258,14 @@ exports.findAllMessageByConversationId = async (req, res) => {
       where: {
         conversationId: conversationId,
       },
+    });
+    result = result.map((row) => {
+      if (row.file) {
+        row.dataValues.file = `${BRAND_MEDIA_URL}/${row.file}`;
+      } else {
+        row.dataValues.file = `${BASE_MEDIA_URL}/600x400.svg`;
+      }
+      return row;
     });
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
@@ -257,87 +307,37 @@ exports.findBrandById = async (req, res) => {
   }
 };
 
-exports.updateBrand = async (req, res) => {
+exports.updateMessagesReadByConversationIdAndReceiverId = async (req, res) => {
   try {
-    const { id } = req.params;
-    if (!req.file) {
-      delete req.body.image;
-    }
-    const { error } = brandSchema.validate(req.body);
-    if (error) {
-      return res.status(HTTP_BAD_REQUEST).json({
-        status: HTTP_BAD_REQUEST,
-        msg: error.message,
-      });
-    }
-    let result = await MessageModel.findByPk(id);
-    if (!result) {
-      return res.status(HTTP_NOT_FOUND).json({
-        status: HTTP_NOT_FOUND,
-        msg: "Brand not found",
+    const { conversationId } = req.params;
+    const { receiver_id } = req.query;
+
+    if (!conversationId) {
+      return res.status(400).json({
+        status: 400,
+        msg: "Missing conversationId",
       });
     }
 
-    if (req.files && req.files.image) {
-      // Upload new image
-      let image = req.files.image;
-      let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
-      if (!allowFiles.includes(image.mimetype)) {
-        return next({
-          status: 400,
-          msg: "ຮູບຫ້ອງຄ້າຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
-        });
+    const [updatedCount] = await MessageModel.update(
+      { isRead: true },
+      {
+        where: {
+          conversationId: conversationId,
+          receiver_id: receiver_id,
+          isRead: false,
+        },
       }
-      const ext = path.extname(image.name);
-      const filename = Date.now() + ext;
-      image.mv(path.join(__dirname, `../../uploads/images/brands/${filename}`));
-      req.body.image = filename;
-    }
+    );
 
-    if (result.name_en !== req.body.name_en) {
-      const checkExist = await MessageModel.findOne({
-        where: { name_en: req.body.name_en },
-      });
-
-      if (checkExist) {
-        return res.status(HTTP_BAD_REQUEST).json({
-          status: HTTP_BAD_REQUEST,
-          msg: "Brand already exists",
-        });
-      }
-    }
-
-    // start transaction
-    await sequelize.transaction(async (t) => {
-      // update brand
-      await MessageModel.update(req.body, {
-        where: { id },
-        transaction: t,
-      });
-
-      if (req.files && req.files.image) {
-        if (result.image) {
-          // Delete old image
-          const oldFilePath = path.join(
-            __dirname,
-            "../../uploads/images/brands",
-            result.image
-          );
-
-          if (fs.existsSync(oldFilePath)) {
-            fs.unlinkSync(oldFilePath);
-          }
-        }
-      }
-      res.status(HTTP_SUCCESS).json({
-        status: HTTP_SUCCESS,
-        msg: "Brand updated successfully",
-      });
+    res.status(200).json({
+      status: 200,
+      msg: `Updated ${updatedCount} message(s) as read`,
     });
   } catch (error) {
-    res.status(HTTP_BAD_REQUEST).json({
-      status: HTTP_BAD_REQUEST,
-      msgM: error.message,
+    res.status(500).json({
+      status: 500,
+      msg: error.message,
     });
   }
 };
