@@ -5,6 +5,9 @@ const UserBofModel = require("../../models/models-bof/user-bof-model");
 const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
 const ProductModel = require("../../models/models-seller/product-model");
 const SellerModel = require("../../models/models-seller/seller-model");
+const WalletSellerModel = require("../../models/models-seller/wallet-seller-model");
+const OrderDetailModel = require("../../models/order-detail-model");
+const WithdrawSellerModel = require("../../models/models-seller/withdraw-seller-model");
 const {
   SELLER_MEDIA_URL,
   BASE_MEDIA_URL,
@@ -194,5 +197,87 @@ exports.findSellerById = async (req, res) => {
       status: HTTP_BAD_REQUEST,
       msg: error.message,
     });
+  }
+};
+
+exports.findSumWallet = async (req, res) => {
+  const { seller_id } = req.params;
+  //console.log("seller_id=========", seller_id);
+  try {
+    let totalWalletBalance = await WalletSellerModel.sum("balance", {
+      where: { wallet_Type: ["deposit"], seller_id },
+    });
+    if (totalWalletBalance === null) totalWalletBalance = 0;
+
+    let dataProfit = await WalletSellerModel.findAll({
+      where: { wallet_Type: "profit", seller_id },
+      include: [
+        {
+          model: OrderDetailModel,
+          as: "order_details",
+          where: { order_detail_status: "complete" },
+        },
+      ],
+    });
+
+    let totalProfitAmount = 0;
+    if (dataProfit.length > 0) {
+      totalProfitAmount = dataProfit.reduce(
+        (sum, item) => parseFloat(sum) + parseFloat(item.bonus),
+        0
+      );
+    }
+
+    let dataFrozen = await WalletSellerModel.findAll({
+      where: { wallet_Type: "profit", seller_id },
+      include: [
+        {
+          model: OrderDetailModel,
+          as: "order_details",
+          where: { order_detail_status: ["confirm", "delivery"] },
+        },
+      ],
+    });
+
+    let totalFrozenAmount = 0;
+    if (dataFrozen.length > 0) {
+      totalFrozenAmount = dataFrozen.reduce(
+        (sum, item) => parseFloat(sum) + parseFloat(item.bonus),
+        0
+      );
+    }
+
+    let totalWithdrawAmount = await WithdrawSellerModel.sum("amount", {
+      where: { withdraw_status: ["approved"], seller_id },
+    });
+    if (totalWithdrawAmount === null) totalWithdrawAmount = 0;
+
+    let dataOrderAmount = await OrderDetailModel.findAll({
+      where: { order_detail_status: ["confirm", "delivery"] },
+      include: [{ model: ProductModel, as: "product", where: { seller_id } }],
+    });
+
+    let totalOrderAmount = 0;
+    if (dataOrderAmount.length > 0) {
+      totalOrderAmount = dataOrderAmount.reduce(
+        (sum, item) => sum + item.price * item.qty,
+        0
+      );
+    }
+
+    totalWalletBalance =
+      totalWalletBalance +
+      totalProfitAmount -
+      (totalOrderAmount + totalWithdrawAmount);
+
+    res.status(200).json({
+      totalWalletBalance,
+      totalProfitAmount,
+      totalFrozenAmount,
+      totalWithdrawAmount,
+      totalOrderAmount,
+    });
+  } catch (error) {
+    res.status(400).json({ status: 400, msg: error.message });
   }
 };

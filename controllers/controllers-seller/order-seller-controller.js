@@ -14,6 +14,7 @@ const {
 const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
 const WalletSellerModel = require("../../models/models-seller/wallet-seller-model");
 const sequelize = require("../../config");
+const { Op } = require("sequelize");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
