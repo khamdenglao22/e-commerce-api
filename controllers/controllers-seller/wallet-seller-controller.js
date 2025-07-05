@@ -8,10 +8,12 @@ const { fn, col, literal, Sequelize } = require("sequelize");
 exports.findSumWallet = async (req, res) => {
   const { seller_id } = req.seller;
   try {
-    let totalWalletBalance = await WalletSellerModel.sum("balance", {
+    let totalWithdrawableAmount = await WalletSellerModel.sum("balance", {
       where: { wallet_Type: ["deposit"], seller_id },
     });
-    if (totalWalletBalance === null) totalWalletBalance = 0;
+
+    if (totalWithdrawableAmount === null && totalWithdrawableAmount < 0)
+      totalWithdrawableAmount = 0;
 
     let dataProfit = await WalletSellerModel.findAll({
       where: { wallet_Type: "profit", seller_id },
@@ -52,9 +54,15 @@ exports.findSumWallet = async (req, res) => {
     }
 
     let totalWithdrawAmount = await WithdrawSellerModel.sum("amount", {
-      where: { withdraw_status: ["approved"], seller_id },
+      where: { withdraw_status: "approved", seller_id },
     });
     if (totalWithdrawAmount === null) totalWithdrawAmount = 0;
+
+    let totalWithdraw = await WithdrawSellerModel.sum("amount", {
+      where: { withdraw_status: ["approved", "pending"], seller_id },
+    });
+
+    if (totalWithdraw === null) totalWithdraw = 0;
 
     let dataOrderAmount = await OrderDetailModel.findAll({
       where: { order_detail_status: ["confirm", "delivery"] },
@@ -69,17 +77,31 @@ exports.findSumWallet = async (req, res) => {
       );
     }
 
-    totalWalletBalance =
-      totalWalletBalance +
-      totalProfitAmount -
-      (totalOrderAmount + totalWithdrawAmount);
+    let totalRecharged = 0;
+    totalRecharged = totalWithdrawableAmount;
+
+    let withdrawableProfit = 0;
+    withdrawableProfit = totalWithdrawableAmount + totalProfitAmount;
+
+    totalWithdrawableAmount =
+      withdrawableProfit - (totalOrderAmount + totalWithdraw);
+
+    if (totalWithdrawableAmount <= 0) {
+      totalWithdrawableAmount = 0;
+    }
+
+    let totalWalletBalance;
+    totalWalletBalance = totalWithdrawableAmount + totalFrozenAmount;
 
     res.status(200).json({
-      totalWalletBalance,
+      totalWithdrawableAmount,
       totalProfitAmount,
       totalFrozenAmount,
       totalWithdrawAmount,
+      totalWithdraw,
       totalOrderAmount,
+      totalWalletBalance,
+      totalRecharged,
     });
   } catch (error) {
     res.status(400).json({ status: 400, msg: error.message });

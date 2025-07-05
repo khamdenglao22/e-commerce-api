@@ -1,4 +1,4 @@
-const { Sequelize } = require("sequelize");
+const { Sequelize, Op } = require("sequelize");
 const ProductColorOptionModel = require("../../models/models-bof/product-color-option-model");
 const ProductMasterBofModel = require("../../models/models-bof/product-master-bof-model");
 const ProductSizeOptionModel = require("../../models/models-bof/product-size-option-model");

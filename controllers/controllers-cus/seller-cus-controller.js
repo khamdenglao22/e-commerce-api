@@ -25,17 +25,17 @@ exports.createSeller = async (req, res) => {
     }
     req.body.customer_id = cus_id;
     req.body.store_name = req.body.store_name.trim();
-    // const existingSeller = await SellerModel.findOne({
-    //   where: {
-    //     store_name: req.body.store_name,
-    //   },
-    // });
-    // if (existingSeller) {
-    //   return res.status(HTTP_BAD_REQUEST).json({
-    //     status: HTTP_BAD_REQUEST,
-    //     msg: "Store name already exists",
-    //   });
-    // }
+    const existingSeller = await SellerModel.findOne({
+      where: {
+        customer_id: cus_id,
+      },
+    });
+    if (existingSeller) {
+      return res.status(HTTP_BAD_REQUEST).json({
+        status: HTTP_BAD_REQUEST,
+        msg: "Your register ..?",
+      });
+    }
     if (req.files && req.files.front_document && req.files.back_certificate) {
       const front_document = req.files.front_document;
       const back_certificate = req.files.back_certificate;
@@ -77,27 +77,6 @@ exports.createSeller = async (req, res) => {
 
     // create seller to user
     await SellerModel.create(req.body);
-
-    // start transaction
-    // await sequelize.transaction(async (t) => {
-    //   // create seller
-    //   await SellerModel.create(req.body, {
-    //     transaction: t,
-    //   });
-
-    //     const user_req = {
-    //       fullname: customer_data.fullname,
-    //       username: customer_data.email,
-    //       password: customer_data.password,
-    //       role_id: 1,
-    //       user_type: "seller",
-    //       seller_id: seller_new.id,
-    //     };
-
-    //     await UserBofModel.create(user_req, {
-    //       transaction: t,
-    //     });
-    // });
 
     res.status(HTTP_CREATED).json({
       status: HTTP_CREATED,
