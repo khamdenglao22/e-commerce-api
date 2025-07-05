@@ -48,4 +48,5 @@ const WalletCusModel = sequelize.define(
   }
 );
 
+
 module.exports = WalletCusModel;

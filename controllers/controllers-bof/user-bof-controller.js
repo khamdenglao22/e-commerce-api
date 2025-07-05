@@ -19,9 +19,10 @@ function passwordHash(password) {
 
 exports.findAllUser = async (req, res) => {
   try {
+    const userType = req.query.user_type || "officer";
     let result = await UserBofModel.findAll({
       attributes: { exclude: ["password"] },
-      where: { user_type: 'officer' }
+      where: { user_type: userType },
     });
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
