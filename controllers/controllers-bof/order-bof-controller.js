@@ -142,7 +142,7 @@ exports.findAllOrderBof = async (req, res) => {
     order_detail_status === undefined ||
     order_detail_status === "" ||
     order_detail_status === null
-      ? ["confirm", "rejected", "delivery", "complete"]
+      ? ["confirm", "rejected", "delivery", "complete", "success"]
       : order_detail_status;
 
   if (from_date && to_date) {

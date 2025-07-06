@@ -8,6 +8,8 @@ const {
   BASE_MEDIA_URL,
 } = require("../../utils/constant");
 const { HTTP_SUCCESS, HTTP_BAD_REQUEST } = require("../../utils/http_status");
+const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
+const SellerModel = require("../../models/models-seller/seller-model");
 
 exports.customerFindCategory = async (req, res) => {
   const { size } = req.query;
@@ -52,6 +54,10 @@ exports.customerFindCategoryById = async (req, res) => {
           model: ProductMasterBofModel,
           as: "product_master",
           where: { ...filter },
+        },
+        {
+          model: SellerModel,
+          as: "seller",
         },
       ],
     });
