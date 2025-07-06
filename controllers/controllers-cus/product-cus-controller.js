@@ -142,7 +142,8 @@ const getPagingData = (data, page, limit) => {
 };
 
 exports.findAllProductSearch = async (req, res) => {
-  const { page, size, seller_id, category_id, brand_id } = req.query;
+  const { page, size, seller_id, category_id, brand_id, search_name } =
+    req.query;
   const { limit, offset } = getPagination(page, size);
 
   let filter = {};
@@ -163,6 +164,16 @@ exports.findAllProductSearch = async (req, res) => {
   } else if (category_id && brand_id) {
     filter = {
       [Op.and]: [{ category_id: category_id }, { brand_id: brand_id }],
+    };
+  }
+
+  if (!category_id && !brand_id && !seller_id) {
+    filter = {
+      [Op.or]: [
+        { name_en: { [Op.like]: `%${search_name}%` } },
+        { name_th: { [Op.like]: `%${search_name}%` } },
+        { name_ch: { [Op.like]: `%${search_name}%` } },
+      ],
     };
   }
 

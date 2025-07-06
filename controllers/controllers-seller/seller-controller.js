@@ -78,18 +78,18 @@ exports.updateSeller = async (req, res) => {
     // }
 
     req.body.store_name = req.body.store_name.trim();
-    const existingSeller = await SellerModel.findOne({
-      where: {
-        store_name: req.body.store_name,
-        id: { [Op.ne]: seller_id },
-      },
-    });
-    if (existingSeller) {
-      return res.status(HTTP_BAD_REQUEST).json({
-        status: HTTP_BAD_REQUEST,
-        msg: "Store name already exists",
-      });
-    }
+    // const existingSeller = await SellerModel.findOne({
+    //   where: {
+    //     store_name: req.body.store_name,
+    //     id: { [Op.ne]: seller_id },
+    //   },
+    // });
+    // if (existingSeller) {
+    //   return res.status(HTTP_BAD_REQUEST).json({
+    //     status: HTTP_BAD_REQUEST,
+    //     msg: "Store name already exists",
+    //   });
+    // }
     const seller = await SellerModel.findByPk(seller_id);
     if (!seller) {
       return res.status(HTTP_BAD_REQUEST).json({
