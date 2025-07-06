@@ -167,6 +167,8 @@ exports.findAllProductSearch = async (req, res) => {
     };
   }
 
+  console.log("filter", filter);
+
   if (!category_id && !brand_id && !seller_id) {
     filter = {
       [Op.or]: [
