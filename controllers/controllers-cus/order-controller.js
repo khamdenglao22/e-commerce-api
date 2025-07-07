@@ -232,18 +232,34 @@ exports.findOrderDetail = async (req, res) => {
 exports.findCountOrderAll = async (req, res) => {
   const { cus_id } = req.customer;
   try {
-    const orderSuccess = await OrderModel.count({
+    const orderSuccess = await OrderDetailModel.count({
       where: {
-        customer_id: cus_id,
-        order_status: ["success", "confirm", "delivery", "rejected"],
+        order_detail_status: ["success", "confirm", "delivery", "rejected"],
       },
+      include: [
+        {
+          model: OrderModel,
+          as: "order",
+          where: {
+            customer_id: cus_id,
+          },
+        },
+      ],
     });
 
-    const orderComplete = await OrderModel.count({
+    const orderComplete = await OrderDetailModel.count({
       where: {
-        customer_id: cus_id,
-        order_status: "complete",
+        order_detail_status: "complete",
       },
+      include: [
+        {
+          model: OrderModel,
+          as: "order",
+          where: {
+            customer_id: cus_id,
+          },
+        },
+      ],
     });
 
     res
@@ -347,7 +363,6 @@ exports.findAllOrder = async (req, res) => {
       .json({ status: HTTP_BAD_REQUEST, msg: error.message });
   }
 };
-
 
 exports.confirmOrder = async (req, res) => {
   const { id } = req.params;
