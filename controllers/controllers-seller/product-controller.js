@@ -25,7 +25,7 @@ const getPagingData = (data, page, limit) => {
 };
 
 exports.findAllProduct = async (req, res) => {
-  const { page, size } = req.query;
+  const { page, size, category_id, brand_id, p_name } = req.query;
   const { limit, offset } = getPagination(page, size);
   const { seller_id } = req.seller;
 
@@ -37,6 +37,17 @@ exports.findAllProduct = async (req, res) => {
         {
           model: ProductMasterBofModel,
           as: "product_master",
+          where: {
+            ...(category_id && { category_id: category_id }),
+            ...(brand_id && { brand_id: brand_id }),
+            ...(p_name && {
+              [Op.or]: [
+                { name_en: { [Op.like]: `%${p_name}%` } },
+                { name_th: { [Op.like]: `%${p_name}%` } },
+                { name_ch: { [Op.like]: `%${p_name}%` } },
+              ],
+            }),
+          },
         },
       ],
       order: [["id", "DESC"]],
@@ -150,38 +161,22 @@ exports.findAllProductMaster = async (req, res) => {
   const { limit, offset } = getPagination(page, size);
   const { seller_id } = req.seller;
 
-  let filter = {};
-  if (p_name) {
-    filter = {
-      [Op.or]: [
-        { name_en: { [Op.like]: `%${p_name}%` } },
-        { name_th: { [Op.like]: `%${p_name}%` } },
-        { name_ch: { [Op.like]: `%${p_name}%` } },
-      ],
-    };
-  }
-  // console.log("filter", filter);
-
-  if (category_id && !brand_id) {
-    filter = {
-      [Op.or]: [{ category_id: category_id }],
-    };
-  } else if (!category_id && brand_id) {
-    filter = {
-      [Op.and]: [{ brand_id: brand_id }],
-    };
-  } else if (category_id && brand_id) {
-    filter = {
-      [Op.and]: [{ category_id: category_id }, { brand_id: brand_id }],
-    };
-  }
-
   // console.log("filter", filter);
 
   try {
     let productMaster = await ProductMasterBofModel.findAndCountAll({
       order: [["id", "DESC"]],
-      where: { ...filter },
+      where: {
+        ...(category_id && { category_id: category_id }),
+        ...(brand_id && { brand_id: brand_id }),
+        ...(p_name && {
+          [Op.or]: [
+            { name_en: { [Op.like]: `%${p_name}%` } },
+            { name_th: { [Op.like]: `%${p_name}%` } },
+            { name_ch: { [Op.like]: `%${p_name}%` } },
+          ],
+        }),
+      },
       limit,
       offset,
       attributes: { exclude: ["createdAt", "updatedAt"] },
@@ -207,24 +202,33 @@ exports.findAllProductMaster = async (req, res) => {
     });
     // .then((data) => {
     const response = getPagingData(productMaster, page, limit);
-    response.result = response.result.map((our) => {
-      if (our.image) {
-        our.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.image}`;
-      } else {
-        our.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
-      }
-      return our;
-    });
-    response.result = response.result.map((our) => {
-      // check productMaster existing in product
-      const exists = products.some((p) => p.product_id === our.id);
-      if (exists) {
-        our.dataValues.product_exist = exists;
-      } else {
-        our.dataValues.product_exist = exists;
-      }
-      return our;
-    });
+
+    // response.result = response.result.map((our) => {
+    //   if (our.image) {
+    //     our.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.image}`;
+    //   } else {
+    //     our.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+    //   }
+    //   return our;
+    // });
+    response.result = response.result
+      .filter((our) => !products.some((p) => p.product_id === our.id))
+      .map((our) => {
+        our.dataValues.image = our.image
+          ? `${PRODUCT_MEDIA_URL}/${our.image}`
+          : `${BASE_MEDIA_URL}/600x400.svg`;
+        return our;
+      });
+    // response.result = response.result.map((our) => {
+    //   // check productMaster existing in product
+    //   const exists = products.some((p) => p.product_id === our.id);
+    //   if (exists) {
+    //     our.dataValues.product_exist = exists;
+    //   } else {
+    //     our.dataValues.product_exist = exists;
+    //   }
+    //   return our;
+    // });
 
     res.json(response);
 

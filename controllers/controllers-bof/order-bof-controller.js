@@ -6,6 +6,7 @@ const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
 const ProductModel = require("../../models/models-seller/product-model");
 const OrderDetailModel = require("../../models/order-detail-model");
 const OrderModel = require("../../models/order-model");
+const SellerModel = require("../../models/models-seller/seller-model");
 const { BASE_MEDIA_URL, PRODUCT_MEDIA_URL } = require("../../utils/constant");
 const {
   HTTP_SUCCESS,
@@ -190,10 +191,15 @@ exports.findAllOrderBof = async (req, res) => {
         {
           model: ProductModel,
           as: "product",
-          include: {
+          include: [{
             model: ProductMasterBofModel,
             as: "product_master",
           },
+            {
+              model: SellerModel,
+              as: "seller",
+            },
+        ],
         },
         {
           model: ProductColorOptionModel,
