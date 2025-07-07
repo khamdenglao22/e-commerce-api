@@ -52,21 +52,6 @@ exports.findById = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     // Check if the role already exists
-    const existingProduct = await CompanyModel.findOne({
-      where: {
-        [Op.or]: [
-          { name_en: req.body.name_en },
-          { name_th: req.body.name_th },
-          { name_ch: req.body.name_ch },
-        ],
-      },
-    });
-    if (existingProduct) {
-      return res.status(HTTP_BAD_REQUEST).json({
-        status: HTTP_BAD_REQUEST,
-        msg: "Role already exists",
-      });
-    }
     await CompanyModel.create(req.body)
       .then((response) => {
         res.status(HTTP_SUCCESS).json({
@@ -158,9 +143,7 @@ exports.createAccount = async (req, res) => {
     // Check if the role already exists
     const existingProduct = await CompanyAccountModel.findOne({
       where: {
-        [Op.or]: [
-          { account: req.body.account },
-        ],
+        [Op.or]: [{ account: req.body.account }],
       },
     });
     if (existingProduct) {
