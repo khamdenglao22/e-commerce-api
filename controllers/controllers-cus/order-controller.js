@@ -246,6 +246,7 @@ exports.findCountOrderAll = async (req, res) => {
         },
       ],
     });
+    
 
     const orderComplete = await OrderDetailModel.count({
       where: {
