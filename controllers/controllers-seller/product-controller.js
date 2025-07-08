@@ -164,6 +164,16 @@ exports.findAllProductMaster = async (req, res) => {
   // console.log("filter", filter);
 
   try {
+    const products = await ProductModel.findAll({
+      where: {
+        seller_id: seller_id,
+      },
+      attributes: ["product_id"],
+      raw: true,
+    });
+
+    const productId = products.map((p) => p.product_id);
+
     let productMaster = await ProductMasterBofModel.findAndCountAll({
       order: [["id", "DESC"]],
       where: {
@@ -175,6 +185,11 @@ exports.findAllProductMaster = async (req, res) => {
             { name_th: { [Op.like]: `%${p_name}%` } },
             { name_ch: { [Op.like]: `%${p_name}%` } },
           ],
+        }),
+        ...(productId.length > 0 && {
+          id: {
+            [Op.notIn]: productId,
+          },
         }),
       },
       limit,
@@ -194,31 +209,25 @@ exports.findAllProductMaster = async (req, res) => {
       ],
     });
 
-    const products = await ProductModel.findAll({
-      where: {
-        seller_id: seller_id,
-      },
-      attributes: ["product_id"],
-    });
     // .then((data) => {
     const response = getPagingData(productMaster, page, limit);
 
-    // response.result = response.result.map((our) => {
-    //   if (our.image) {
-    //     our.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.image}`;
-    //   } else {
-    //     our.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
-    //   }
-    //   return our;
-    // });
-    response.result = response.result
-      .filter((our) => !products.some((p) => p.product_id === our.id))
-      .map((our) => {
-        our.dataValues.image = our.image
-          ? `${PRODUCT_MEDIA_URL}/${our.image}`
-          : `${BASE_MEDIA_URL}/600x400.svg`;
-        return our;
-      });
+    response.result = response.result.map((our) => {
+      if (our.image) {
+        our.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.image}`;
+      } else {
+        our.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+      }
+      return our;
+    });
+    // response.result = response.result
+    //   .filter((our) => !products.some((p) => p.product_id === our.id))
+    //   .map((our) => {
+    //     our.dataValues.image = our.image
+    //       ? `${PRODUCT_MEDIA_URL}/${our.image}`
+    //       : `${BASE_MEDIA_URL}/600x400.svg`;
+    //     return our;
+    //   });
     // response.result = response.result.map((our) => {
     //   // check productMaster existing in product
     //   const exists = products.some((p) => p.product_id === our.id);
