@@ -25,9 +25,11 @@ const getPagingData = (data, page, limit) => {
 };
 
 exports.findAllProduct = async (req, res) => {
-  const { page, size, category_id, brand_id, p_name } = req.query;
+  const { page, size, category_id, brand_id, p_name, product_status } =
+    req.query;
   const { limit, offset } = getPagination(page, size);
   const { seller_id } = req.seller;
+  console.log("product stusta===", product_status);
 
   try {
     const products = await ProductModel.findAndCountAll({
@@ -54,6 +56,7 @@ exports.findAllProduct = async (req, res) => {
       attributes: { exclude: ["product_id", "seller_id"] },
       where: {
         seller_id,
+        ...(product_status && { product_status: product_status }),
       },
     });
     let response = getPagingData(products, page, limit);
