@@ -62,12 +62,49 @@ exports.createOrder = async (req, res) => {
       transaction,
     });
 
+    let resultData = await OrderDetailModel.findAll({
+      distinct: true,
+      where: { order_id: createOrder.id },
+      include: [
+        {
+          model: OrderModel,
+          as: "order",
+        },
+        {
+          model: ProductModel,
+          as: "product",
+          include: {
+            model: ProductMasterBofModel,
+            as: "product_master",
+          },
+        },
+        {
+          model: ProductColorOptionModel,
+          as: "product_color_details",
+        },
+        {
+          model: ProductSizeOptionModel,
+          as: "product_size_details",
+        },
+      ],
+      transaction,
+    });
+
+    resultData = resultData.map((orderItem) => {
+      if (orderItem.product.product_master.image) {
+        orderItem.dataValues.product.product_master.image = `${PRODUCT_MEDIA_URL}/${orderItem.dataValues.product.product_master.image}`;
+      } else {
+        orderItem.dataValues.product.product_master.image = `${BASE_MEDIA_URL}/600x400.svg`;
+      }
+      return orderItem;
+    });
+
     transaction.commit();
 
     res.status(HTTP_CREATED).json({
       status: HTTP_CREATED,
       msg: "Order created successfully",
-      data: createOrder,
+      data: resultData,
     });
   } catch (err) {
     res
@@ -246,7 +283,6 @@ exports.findCountOrderAll = async (req, res) => {
         },
       ],
     });
-    
 
     const orderComplete = await OrderDetailModel.count({
       where: {
@@ -428,3 +464,4 @@ exports.confirmOrder = async (req, res) => {
       .json({ status: HTTP_BAD_REQUEST, msg: error.message });
   }
 };
+
