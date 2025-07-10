@@ -38,8 +38,22 @@ exports.customerFindCategory = async (req, res) => {
   }
 };
 
+const getPagination = (page, size) => {
+  const limit = size ? +size : 10;
+  const offset = page && page > 0 ? (page - 1) * limit : 0;
+  return { limit, offset };
+};
+
+const getPagingData = (data, page, limit) => {
+  const { count: totalItems, rows: result } = data;
+  const currentPage = page ? +page : 0;
+  const totalPages = Math.ceil(totalItems / limit);
+  return { totalItems, result, totalPages, currentPage };
+};
+
 exports.customerFindCategoryById = async (req, res) => {
-  const { cate_id } = req.query;
+  const { page, size, cate_id } = req.query;
+  const { limit, offset } = getPagination(page, size);
 
   let filter = {};
   if (cate_id) {
@@ -48,7 +62,9 @@ exports.customerFindCategoryById = async (req, res) => {
     };
   }
   try {
-    let result = await ProductModel.findAll({
+    let result = await ProductModel.findAndCountAll({
+      limit,
+      offset,
       include: [
         {
           model: ProductMasterBofModel,
@@ -62,14 +78,16 @@ exports.customerFindCategoryById = async (req, res) => {
       ],
     });
 
-    if (!result) {
-      return res.status(HTTP_NOT_FOUND).json({
-        status: HTTP_NOT_FOUND,
-        msg: "Category not found",
-      });
-    }
+    // if (!result) {
+    //   return res.status(HTTP_NOT_FOUND).json({
+    //     status: HTTP_NOT_FOUND,
+    //     msg: "Category not found",
+    //   });
+    // }
 
-    result.product_master = result.map((our) => {
+    const response = getPagingData(result, page, limit);
+
+    response.result = response.result.map((our) => {
       if (our.product_master.image) {
         our.product_master.dataValues.image = `${PRODUCT_MEDIA_URL}/${our.product_master.image}`;
       } else {
@@ -78,10 +96,7 @@ exports.customerFindCategoryById = async (req, res) => {
       return our;
     });
 
-    res.status(HTTP_SUCCESS).json({
-      status: HTTP_SUCCESS,
-      data: result,
-    });
+    res.status(HTTP_SUCCESS).json(response);
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({
       status: HTTP_BAD_REQUEST,
