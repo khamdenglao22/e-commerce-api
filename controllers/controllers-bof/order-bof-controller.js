@@ -16,6 +16,7 @@ const {
 const AddressCusModel = require("../../models/models-cus/address-cus-model");
 const WalletSellerModel = require("../../models/models-seller/wallet-seller-model");
 const sequelize = require("../../config");
+const ShopOverviewModel = require("../../models/models-seller/shop-overview-model");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
@@ -191,15 +192,16 @@ exports.findAllOrderBof = async (req, res) => {
         {
           model: ProductModel,
           as: "product",
-          include: [{
-            model: ProductMasterBofModel,
-            as: "product_master",
-          },
+          include: [
+            {
+              model: ProductMasterBofModel,
+              as: "product_master",
+            },
             {
               model: SellerModel,
               as: "seller",
             },
-        ],
+          ],
         },
         {
           model: ProductColorOptionModel,
@@ -292,7 +294,64 @@ exports.confirmOrderBof = async (req, res) => {
       await checkOrder.save({ transaction });
     }
 
+    // create rating
+    if (orderDetail.dataValues.product) {
+      const checkOrderRating = await OrderDetailModel.count({
+        where: {
+          order_detail_status: "complete",
+        },
+        include: [
+          {
+            model: ProductModel,
+            as: "product",
+            where: {
+              seller_id: orderDetail.dataValues.product.seller_id,
+            },
+          },
+        ],
+      });
+
+      if (checkOrderRating === 1) {
+        await ShopOverviewModel.create({
+          seller_id: orderDetail.dataValues.product.seller_id,
+          overview_value: 1,
+          overview_type: "rating",
+        });
+      } else if (checkOrderRating === 2) {
+        await ShopOverviewModel.create({
+          seller_id: orderDetail.dataValues.product.seller_id,
+          overview_value: 1,
+          overview_type: "rating",
+        });
+      } else if (checkOrderRating === 3) {
+        await ShopOverviewModel.create({
+          seller_id: orderDetail.dataValues.product.seller_id,
+          overview_value: 1,
+          overview_type: "rating",
+        });
+      } else if (checkOrderRating === 4) {
+        await ShopOverviewModel.create({
+          seller_id: orderDetail.dataValues.product.seller_id,
+          overview_value: 2,
+          overview_type: "rating",
+        });
+      }
+    }
+
+    // create following
+
     transaction.commit();
+
+    const radomData = [1, 2, 3];
+    const randomValue = radomData[Math.floor(Math.random() * radomData.length)];
+
+    if (orderDetail.dataValues.order_detail_status === "complete") {
+      await ShopOverviewModel.create({
+        seller_id: orderDetail.dataValues.product.seller_id,
+        overview_value: randomValue,
+        overview_type: "follow",
+      });
+    }
 
     res
       .status(HTTP_SUCCESS)

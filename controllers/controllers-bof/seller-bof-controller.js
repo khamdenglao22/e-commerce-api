@@ -15,6 +15,7 @@ const {
 } = require("../../utils/constant");
 const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
 const { Op } = require("sequelize");
+const ShopOverviewModel = require("../../models/models-seller/shop-overview-model");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
@@ -108,6 +109,11 @@ exports.confirmSeller = async (req, res) => {
         seller_id: data_update.id,
       };
       await UserBofModel.create(user_req);
+      await ShopOverviewModel.create({
+        seller_id: data_update.id,
+        overview_value: 5,
+        overview_type: "credit",
+      });
     } else {
       await UserBofModel.destroy({
         where: { seller_id: data_update.id },

@@ -27,6 +27,13 @@ app.get("/", (req, res) => {
   res.json({ message: "E-Commerce-API" });
 });
 
+const followStore = require("./cron/followStore");
+const checkCredit = require("./cron/checkCredit");
+
+// start follow store
+followStore();
+checkCredit();
+
 const {
   getCurrentUser,
 } = require("./controllers/controllers-bof/auth-bof-controller");
@@ -109,6 +116,7 @@ const depositSellerRoute = require("./routers/routers-seller/deposit-router");
 const withdrawSellerRoute = require("./routers/routers-seller/withdraw-router");
 const orderSellerRoute = require("./routers/routers-seller/order-seller-router");
 const walletSellerRoute = require("./routers/routers-seller/wallet-seller-router");
+const shopOverviewRoute = require("./routers/routers-seller/shop-overview-router");
 
 app.use("/api/v1/sell/info", sellerRoute);
 app.use("/api/v1/sell/products", getCurrentSeller, productRoute);
@@ -116,5 +124,6 @@ app.use("/api/v1/sell/deposit_seller", getCurrentSeller, depositSellerRoute);
 app.use("/api/v1/sell/withdraw_seller", getCurrentSeller, withdrawSellerRoute);
 app.use("/api/v1/sell/order", getCurrentSeller, orderSellerRoute);
 app.use("/api/v1/sell/wallet", getCurrentSeller, walletSellerRoute);
+app.use("/api/v1/sell/shop-overview", getCurrentSeller, shopOverviewRoute);
 
 app.listen(port, () => console.log(`listening on http://localhost:${port}`));
