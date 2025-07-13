@@ -29,10 +29,12 @@ app.get("/", (req, res) => {
 
 const followStore = require("./cron/followStore");
 const checkCredit = require("./cron/checkCredit");
+const confirmOrderAuto = require("./cron/confirmOrder");
 
 // start follow store
-followStore();
+// followStore();
 checkCredit();
+confirmOrderAuto();
 
 const {
   getCurrentUser,
@@ -117,6 +119,7 @@ const withdrawSellerRoute = require("./routers/routers-seller/withdraw-router");
 const orderSellerRoute = require("./routers/routers-seller/order-seller-router");
 const walletSellerRoute = require("./routers/routers-seller/wallet-seller-router");
 const shopOverviewRoute = require("./routers/routers-seller/shop-overview-router");
+const chatProductRoute = require("./routers/routers-seller/chat-router");
 
 app.use("/api/v1/sell/info", sellerRoute);
 app.use("/api/v1/sell/products", getCurrentSeller, productRoute);
@@ -125,5 +128,6 @@ app.use("/api/v1/sell/withdraw_seller", getCurrentSeller, withdrawSellerRoute);
 app.use("/api/v1/sell/order", getCurrentSeller, orderSellerRoute);
 app.use("/api/v1/sell/wallet", getCurrentSeller, walletSellerRoute);
 app.use("/api/v1/sell/shop-overview", getCurrentSeller, shopOverviewRoute);
+app.use("/api/v1/sell/chat-product", getCurrentSeller, chatProductRoute);
 
 app.listen(port, () => console.log(`listening on http://localhost:${port}`));

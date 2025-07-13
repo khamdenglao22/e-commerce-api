@@ -7,7 +7,7 @@ const ProductModel = require("../models/models-seller/product-model");
 const ShopOverviewModel = require("../models/models-seller/shop-overview-model");
 
 const checkCredit = () => {
-  cron.schedule("* * * * *", async () => {
+  cron.schedule("0 0 * * *", async () => {
     console.log("Running check credit ...");
 
     try {
@@ -52,7 +52,7 @@ const checkCredit = () => {
         // Convert to days
         const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
-        if (diffDays === 3) {
+        if (diffDays >= 5) {
           console.log(
             `✅ Date is exactly ${diffDays} days ago ${dataSeller[index].id}`
           );

@@ -3,7 +3,7 @@ const ShopOverviewModel = require("../models/models-seller/shop-overview-model")
 const SellerModel = require("../models/models-seller/seller-model");
 
 const followStore = () => {
-  cron.schedule("* * * * *", async () => {
+  cron.schedule("0 0 * * *", async () => {
     console.log("Running daily task...");
     try {
       const radomData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
