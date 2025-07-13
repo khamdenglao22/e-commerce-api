@@ -294,64 +294,7 @@ exports.confirmOrderBof = async (req, res) => {
       await checkOrder.save({ transaction });
     }
 
-    // create rating
-    if (orderDetail.dataValues.product) {
-      const checkOrderRating = await OrderDetailModel.count({
-        where: {
-          order_detail_status: "complete",
-        },
-        include: [
-          {
-            model: ProductModel,
-            as: "product",
-            where: {
-              seller_id: orderDetail.dataValues.product.seller_id,
-            },
-          },
-        ],
-      });
-
-      if (checkOrderRating === 1) {
-        await ShopOverviewModel.create({
-          seller_id: orderDetail.dataValues.product.seller_id,
-          overview_value: 1,
-          overview_type: "rating",
-        });
-      } else if (checkOrderRating === 2) {
-        await ShopOverviewModel.create({
-          seller_id: orderDetail.dataValues.product.seller_id,
-          overview_value: 1,
-          overview_type: "rating",
-        });
-      } else if (checkOrderRating === 3) {
-        await ShopOverviewModel.create({
-          seller_id: orderDetail.dataValues.product.seller_id,
-          overview_value: 1,
-          overview_type: "rating",
-        });
-      } else if (checkOrderRating === 4) {
-        await ShopOverviewModel.create({
-          seller_id: orderDetail.dataValues.product.seller_id,
-          overview_value: 2,
-          overview_type: "rating",
-        });
-      }
-    }
-
-    // create following
-
     transaction.commit();
-
-    const radomData = [1, 2, 3];
-    const randomValue = radomData[Math.floor(Math.random() * radomData.length)];
-
-    if (orderDetail.dataValues.order_detail_status === "complete") {
-      await ShopOverviewModel.create({
-        seller_id: orderDetail.dataValues.product.seller_id,
-        overview_value: randomValue,
-        overview_type: "follow",
-      });
-    }
 
     res
       .status(HTTP_SUCCESS)

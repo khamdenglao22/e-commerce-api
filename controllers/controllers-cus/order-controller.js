@@ -344,7 +344,7 @@ exports.findAllOrder = async (req, res) => {
       order: [
         [
           Sequelize.literal(
-            "CASE WHEN order_detail_status = 'delivery' THEN 0 ELSE 1 END"
+            "CASE WHEN order_detail_status = 'confirm' THEN 0 ELSE 1 END"
           ),
           "ASC",
         ],
@@ -464,4 +464,3 @@ exports.confirmOrder = async (req, res) => {
       .json({ status: HTTP_BAD_REQUEST, msg: error.message });
   }
 };
-

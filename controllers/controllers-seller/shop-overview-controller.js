@@ -145,7 +145,10 @@ exports.findSumOverview = async (req, res) => {
 
     let totalProfitToday = 0;
     if (orderToDay.length > 0) {
-      totalProfitToday = orderToDay.reduce((sum, item) => sum + item.profit, 0);
+      totalProfitToday = orderToDay.reduce(
+        (sum, item) => sum + item.dataValues.profit,
+        0
+      );
     }
 
     res.status(HTTP_SUCCESS).json({

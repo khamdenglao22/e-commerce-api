@@ -14,6 +14,7 @@ const {
 const CustomerCusModel = require("../../models/models-cus/customer-cus-model");
 const WalletSellerModel = require("../../models/models-seller/wallet-seller-model");
 const sequelize = require("../../config");
+const ShopOverviewModel = require("../../models/models-seller/shop-overview-model");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
@@ -194,7 +195,48 @@ exports.confirmOrderSeller = async (req, res) => {
       );
     }
 
+    // Rating logic
+    const completeCount = await OrderDetailModel.count({
+      where: {
+        order_detail_status: "confirm",
+      },
+      include: [
+        {
+          model: ProductModel,
+          as: "product",
+          where: { seller_id },
+        },
+      ],
+    });
+
+    let checkRating = await ShopOverviewModel.sum("overview_value", {
+      where: {
+        seller_id,
+        overview_type: "rating",
+      },
+    });
+
+    if (checkRating === null) checkRating = 0;
+
+    let overviewValue = 0;
+
+    if (checkRating < 5) {
+      if (completeCount > 1) overviewValue = 1;
+
+      if (overviewValue > 0) {
+        await ShopOverviewModel.create(
+          {
+            seller_id,
+            overview_value: overviewValue,
+            overview_type: "rating",
+          },
+          { transaction }
+        );
+      }
+    }
+
     console.log(`all Confirm : ${allConfirm}`);
+
     transaction.commit();
     res
       .status(HTTP_SUCCESS)
