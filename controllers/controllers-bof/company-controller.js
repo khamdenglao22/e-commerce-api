@@ -8,6 +8,7 @@ const {
 } = require("../../utils/http_status");
 const path = require("path");
 const fs = require("fs");
+const { BASE_MEDIA_URL, BRAND_MEDIA_URL } = require("../../utils/constant");
 
 exports.findAll = async (req, res) => {
   try {
@@ -121,18 +122,31 @@ exports.deleteById = async (req, res) => {
 
 exports.findAllAccount = async (req, res) => {
   try {
-    await CompanyAccountModel.findAll()
-      .then((response) => {
-        res.status(HTTP_SUCCESS).json({
-          status: HTTP_SUCCESS,
-          data: response,
-        });
-      })
-      .catch((err) => {
-        res
-          .status(HTTP_BAD_REQUEST)
-          .json({ status: HTTP_BAD_REQUEST, msg: err.message });
-      });
+    // await CompanyAccountModel.findAll()
+    //   .then((response) => {
+    //     res.status(HTTP_SUCCESS).json({
+    //       status: HTTP_SUCCESS,
+    //       data: response,
+    //     });
+    //   })
+    //   .catch((err) => {
+    //     res
+    //       .status(HTTP_BAD_REQUEST)
+    //       .json({ status: HTTP_BAD_REQUEST, msg: err.message });
+    //   });
+    let result = await CompanyAccountModel.findAll();
+    result = result.map((row) => {
+      if (row.image) {
+        row.dataValues.image = `${BRAND_MEDIA_URL}/${row.image}`;
+      } else {
+        row.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+      }
+      return row;
+    });
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      data: result,
+    });
   } catch (error) {
     res
       .status(HTTP_BAD_REQUEST)
@@ -165,6 +179,10 @@ exports.createAccount = async (req, res) => {
       }
       const ext = path.extname(image.name);
       const filename = Date.now() + ext;
+      const dirPath = path.join(__dirname, "../../uploads/images/brands");
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+      }
       image.mv(path.join(__dirname, `../../uploads/images/brands/${filename}`));
       req.body.image = filename;
     }
