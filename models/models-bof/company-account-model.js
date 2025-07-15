@@ -17,6 +17,10 @@ const CompanyAccountModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    image: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     company_id: {
       type: DataTypes.INTEGER,
       allowNull: false,

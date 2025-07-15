@@ -6,6 +6,8 @@ const {
   HTTP_SUCCESS,
   HTTP_NOT_FOUND,
 } = require("../../utils/http_status");
+const path = require("path");
+const fs = require("fs");
 
 exports.findAll = async (req, res) => {
   try {
@@ -151,6 +153,20 @@ exports.createAccount = async (req, res) => {
         status: HTTP_BAD_REQUEST,
         msg: "Account already exists",
       });
+    }
+    if (req.files && req.files.image) {
+      let image = req.files.image;
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+      if (!allowFiles.includes(image.mimetype)) {
+        return res.json({
+          status: 400,
+          msg: "ຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
+        });
+      }
+      const ext = path.extname(image.name);
+      const filename = Date.now() + ext;
+      image.mv(path.join(__dirname, `../../uploads/images/brands/${filename}`));
+      req.body.image = filename;
     }
     await CompanyAccountModel.create(req.body)
       .then((response) => {
