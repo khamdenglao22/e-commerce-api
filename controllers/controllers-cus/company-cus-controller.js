@@ -1,5 +1,6 @@
 const CompanyAccountModel = require("../../models/models-bof/company-account-model");
 const { HTTP_NOT_FOUND, HTTP_SUCCESS, HTTP_BAD_REQUEST } = require("../../utils/http_status");
+const { BASE_MEDIA_URL, BRAND_MEDIA_URL } = require("../../utils/constant");
 
 exports.findCompanyByCurrency = async (req, res) => {
   const { code_currency } = req.query;
@@ -15,6 +16,14 @@ exports.findCompanyByCurrency = async (req, res) => {
         msg: "Company not found",
       });
     }
+
+    if (company.image) {
+      company.dataValues.image = `${BRAND_MEDIA_URL}/${company.image}`;
+    } else {
+      company.dataValues.image = `${BASE_MEDIA_URL}/600x400.svg`;
+    }
+
+
     res.status(HTTP_SUCCESS).json({ status: HTTP_SUCCESS, data: company });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({

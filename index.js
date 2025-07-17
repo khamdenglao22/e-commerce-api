@@ -32,7 +32,7 @@ const checkCredit = require("./cron/checkCredit");
 const confirmOrderAuto = require("./cron/confirmOrder");
 
 // start follow store
-// followStore();
+followStore();
 checkCredit();
 confirmOrderAuto();
 
