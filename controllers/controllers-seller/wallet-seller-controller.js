@@ -77,6 +77,19 @@ exports.findSumWallet = async (req, res) => {
       );
     }
 
+    let dataOrderAmountComplete = await OrderDetailModel.findAll({
+      where: { order_detail_status: "complete" },
+      include: [{ model: ProductModel, as: "product", where: { seller_id } }],
+    });
+
+    let totalOrderAmountComplete = 0;
+    if (dataOrderAmountComplete.length > 0) {
+      totalOrderAmountComplete = dataOrderAmountComplete.reduce(
+        (sum, item) => sum + item.price * item.qty,
+        0
+      );
+    }
+
     let totalRecharged = 0;
     totalRecharged = totalWithdrawableAmount;
 
@@ -102,6 +115,7 @@ exports.findSumWallet = async (req, res) => {
       totalOrderAmount,
       totalWalletBalance,
       totalRecharged,
+      totalOrderAmountComplete
     });
   } catch (error) {
     res.status(400).json({ status: 400, msg: error.message });
