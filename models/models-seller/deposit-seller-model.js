@@ -1,7 +1,7 @@
 const sequelize = require("../../config");
 const { DataTypes } = require("sequelize");
 const SellerModel = require("./seller-model");
-const CompanyAccountModel = require("../models-bof/company-account-model")
+const CompanyAccountModel = require("../models-bof/company-account-model");
 
 const DepositSellerModel = sequelize.define(
   "DepositSellerModel",
@@ -39,6 +39,11 @@ const DepositSellerModel = sequelize.define(
     account_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
+    },
+    visible: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
     },
   },
   {
