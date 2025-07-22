@@ -169,8 +169,12 @@ exports.findSellerById = async (req, res) => {
     let productOfSeller = await ProductModel.count({
       where: { seller_id: id },
     });
-
     result.dataValues.productTotalQty = productOfSeller;
+
+    let userOfSeller = await UserBofModel.findByPk(id);
+    // if (userOfSeller) {
+    result.dataValues.seller_user = userOfSeller;
+    // }
 
     if (!result) {
       return res.status(HTTP_BAD_REQUEST).json({

@@ -23,11 +23,10 @@ const UserBofModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    // role_id: {
-    //   type: DataTypes.INTEGER,
-    //   allowNull: false,
-    //   references: { model: RoleBofModel, key: "id" },
-    // },
+    role: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     user_type: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -47,10 +46,5 @@ const UserBofModel = sequelize.define(
     timestamps: true,
   }
 );
-
-UserBofModel.belongsTo(RoleBofModel, {
-  foreignKey: "seller_id",
-  as: "seller",
-});
 
 module.exports = UserBofModel;

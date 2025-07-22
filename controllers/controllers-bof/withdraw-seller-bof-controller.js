@@ -4,7 +4,11 @@ const WalletSellerModel = require("../../models/models-seller/wallet-seller-mode
 // const CompanyAccountModel = require("../../models/models-bof/company-account-model");
 const WithdrawSellerModel = require("../../models/models-seller/withdraw-seller-model");
 const { DEPOSIT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
-const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
+const {
+  HTTP_BAD_REQUEST,
+  HTTP_SUCCESS,
+  HTTP_NOT_FOUND,
+} = require("../../utils/http_status");
 const { Op } = require("sequelize");
 const path = require("path");
 
@@ -172,6 +176,31 @@ exports.confirmWithdrawBof = async (req, res) => {
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
       data: withdraw,
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.deleteWithdraw = async (req, res) => {
+  const { id } = req.params;
+  try {
+    let data = await WithdrawSellerModel.findByPk(id);
+    if (!data) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "not found",
+      });
+    }
+    data.visible = false;
+    await data.save();
+
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      msg: "Deleted successfully",
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({

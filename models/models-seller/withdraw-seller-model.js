@@ -35,6 +35,12 @@ const WithdrawSellerModel = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+
+    visible: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
+    },
     
   },
   {

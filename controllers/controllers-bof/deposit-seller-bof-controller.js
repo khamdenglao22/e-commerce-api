@@ -3,7 +3,11 @@ const DepositSellerModel = require("../../models/models-seller/deposit-seller-mo
 const WalletSellerModel = require("../../models/models-seller/wallet-seller-model");
 const CompanyAccountModel = require("../../models/models-bof/company-account-model");
 const { DEPOSIT_MEDIA_URL, BASE_MEDIA_URL } = require("../../utils/constant");
-const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
+const {
+  HTTP_BAD_REQUEST,
+  HTTP_SUCCESS,
+  HTTP_NOT_FOUND,
+} = require("../../utils/http_status");
 const { Op } = require("sequelize");
 
 const getPagination = (page, size) => {
@@ -44,7 +48,7 @@ exports.findAllDepositBof = async (req, res) => {
   try {
     let deposit = await DepositSellerModel.findAndCountAll({
       order: [["id", "DESC"]],
-      where: { ...filter },
+      where: { visible: true, ...filter },
       limit,
       offset,
       include: [
@@ -53,8 +57,8 @@ exports.findAllDepositBof = async (req, res) => {
           as: "seller",
           attributes: { exclude: ["createdAt", "updatedAt"] },
         },
-        { model: CompanyAccountModel, as: "account" }
-      ]
+        { model: CompanyAccountModel, as: "account" },
+      ],
     });
 
     const response = getPagingData(deposit, page, limit);
@@ -132,7 +136,7 @@ exports.confirmDepositBof = async (req, res) => {
 
     deposit.deposit_status = req.body.deposit_status;
     deposit.user_id = user_id;
-    if( req.body.reason) {
+    if (req.body.reason) {
       deposit.reason = req.body.reason;
     }
 
@@ -151,6 +155,54 @@ exports.confirmDepositBof = async (req, res) => {
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
       data: deposit,
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.deleteDeposit = async (req, res) => {
+  const { id } = req.params;
+  try {
+    let data = await DepositSellerModel.findByPk(id);
+    if (!data) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "not found",
+      });
+    }
+    data.visible = false;
+    await data.save();
+
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      msg: "Deleted successfully",
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.createDepositOfSeller = async (req, res) => {
+  const { user_id } = req.user;
+  try {
+    await WalletSellerModel.create({
+      balance: req.body.amount,
+      bonus: 0,
+      wallet_type: "deposit",
+      seller_id: req.body.seller_id,
+      user_id: user_id,
+    });
+
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      msg: "Created success",
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({
