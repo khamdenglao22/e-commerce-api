@@ -176,7 +176,7 @@ exports.changePassword = async (req, res) => {
         msg: "User not found",
       });
     }
-    req.body.password = passwordHash(req.body.password);
+    // req.body.password = passwordHash(req.body.password);
     await UserBofModel.update(req.body, {
       where: { id },
     });
