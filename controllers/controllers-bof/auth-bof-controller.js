@@ -44,6 +44,7 @@ exports.loginUser = async (req, res) => {
         user_id: user.id,
         fullname: user.fullname,
         user_type: user.user_type,
+        role: user.role,
       },
       process.env.SECRET_KEY,
       {
