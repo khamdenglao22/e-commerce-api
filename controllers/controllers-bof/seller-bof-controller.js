@@ -175,6 +175,30 @@ exports.findSellerById = async (req, res) => {
     // if (userOfSeller) {
     result.dataValues.seller_user = userOfSeller;
     // }
+    let dataCreditIn = await ShopOverviewModel.sum("overview_value", {
+      where: {
+        seller_id: id,
+        overview_type: "credit",
+        overview_status: "in",
+      },
+    });
+    if (dataCreditIn === null) dataCreditIn = 0;
+
+    let dataCreditOut = await ShopOverviewModel.sum("overview_value", {
+      where: {
+        seller_id: id,
+        overview_type: "credit",
+        overview_status: "out",
+      },
+    });
+
+    if (dataCreditOut === null) dataCreditOut = 0;
+
+    let dataCreditAll = 0;
+    dataCreditAll = dataCreditIn - dataCreditOut;
+    if (dataCreditAll <= 0) dataCreditAll = 0;
+
+    result.dataValues.seller_credit = dataCreditAll;
 
     if (!result) {
       return res.status(HTTP_BAD_REQUEST).json({
