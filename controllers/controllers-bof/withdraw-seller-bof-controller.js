@@ -50,7 +50,7 @@ exports.findAllWithdrawBof = async (req, res) => {
   try {
     let deposit = await WithdrawSellerModel.findAndCountAll({
       order: [["id", "DESC"]],
-      where: { ...filter },
+      where: { visible: true, ...filter },
       limit,
       offset,
       include: [

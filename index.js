@@ -58,6 +58,7 @@ const withdrawSellerBofRoute = require("./routers/routers-bof/withdraw-seller-bo
 const slideImageRoute = require("./routers/routers-bof/slide-image-router");
 const messageRoute = require("./routers/routers-bof/message-router");
 const orderBofRoute = require("./routers/routers-bof/order-bof-router");
+const sellerCredit = require("./routers/routers-bof/seller-credit-bof-router");
 
 app.use("/api/v1/brands", brandRoute);
 app.use("/api/v1/category", categoryRoute);
@@ -76,6 +77,7 @@ app.use("/api/v1/withdraw_seller", getCurrentUser, withdrawSellerBofRoute);
 app.use("/api/v1/slide_image", slideImageRoute);
 app.use("/api/v1/message", messageRoute);
 app.use("/api/v1/order", getCurrentUser, orderBofRoute);
+app.use("/api/v1/update-credit", getCurrentUser, sellerCredit);
 
 // ສ່ວນສຳລັບ API Customer ສໍາລັບສ່ວນຂອງ ລູກຄ້າ
 const {
