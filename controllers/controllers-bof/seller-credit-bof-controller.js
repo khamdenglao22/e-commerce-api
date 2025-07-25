@@ -8,6 +8,7 @@ exports.updateCredit = async (req, res) => {
       seller_id: id,
       overview_value: req.body.credit,
       overview_type: req.body.overview_type,
+      overview_status: req.body.overview_status,
     });
 
     res.status(HTTP_SUCCESS).json({
