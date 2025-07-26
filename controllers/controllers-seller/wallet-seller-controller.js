@@ -65,7 +65,7 @@ exports.findSumWallet = async (req, res) => {
     if (totalWithdraw === null) totalWithdraw = 0;
 
     let dataOrderAmount = await OrderDetailModel.findAll({
-      where: { order_detail_status: ["confirm", "delivery"] },
+      where: { order_detail_status: ["confirm", "complete"] },
       include: [{ model: ProductModel, as: "product", where: { seller_id } }],
     });
 
