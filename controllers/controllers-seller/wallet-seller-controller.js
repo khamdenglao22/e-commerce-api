@@ -40,7 +40,7 @@ exports.findSumWallet = async (req, res) => {
         {
           model: OrderDetailModel,
           as: "order_details",
-          where: { order_detail_status: ["confirm", "delivery"] },
+          where: { order_detail_status: ["confirm"] },
         },
       ],
     });
@@ -59,7 +59,11 @@ exports.findSumWallet = async (req, res) => {
     if (totalWithdrawAmount === null) totalWithdrawAmount = 0;
 
     let totalWithdraw = await WithdrawSellerModel.sum("amount", {
-      where: { withdraw_status: ["approved", "pending"], seller_id },
+      where: {
+        withdraw_status: ["approved", "pending"],
+        seller_id,
+        visible: true,
+      },
     });
 
     if (totalWithdraw === null) totalWithdraw = 0;
@@ -115,7 +119,7 @@ exports.findSumWallet = async (req, res) => {
       totalOrderAmount,
       totalWalletBalance,
       totalRecharged,
-      totalOrderAmountComplete
+      totalOrderAmountComplete,
     });
   } catch (error) {
     res.status(400).json({ status: 400, msg: error.message });

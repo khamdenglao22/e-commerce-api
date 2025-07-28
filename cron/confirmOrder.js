@@ -14,7 +14,7 @@ const confirmOrderAuto = () => {
 
     try {
       const fiveDaysAgo = new Date();
-      fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+      fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 15);
 
       // OR if using date-fns: const fiveDaysAgo = subDays(new Date(), 5);
 
