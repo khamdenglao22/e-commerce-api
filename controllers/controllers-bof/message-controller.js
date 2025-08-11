@@ -341,37 +341,44 @@ exports.updateMessagesReadByConversationIdAndReceiverId = async (req, res) => {
     });
   }
 };
-
-exports.deleteBrand = async (req, res) => {
+exports.deleteMessageByConversationId = async (req, res) => {
   try {
-    const { id } = req.params;
-    let result = await MessageModel.findByPk(id);
-    if (!result) {
+    const { conversationId } = req.params;
+
+    // Find messages by conversationId
+    const messages = await MessageModel.findAll({
+      where: { conversationId },
+    });
+
+    if (!messages.length) {
       return res.status(HTTP_NOT_FOUND).json({
         status: HTTP_NOT_FOUND,
-        msg: "Brand not found",
+        msg: "No messages found for this conversation",
       });
     }
 
-    // Delete brand
-    await MessageModel.destroy({
-      where: { id },
-    });
-
-    if (result.image) {
-      // Delete image
-      const oldFilePath = path.join(
-        __dirname,
-        "../../uploads/images/brand",
-        result.image
-      );
-      if (fs.existsSync(oldFilePath)) {
-        fs.unlinkSync(oldFilePath);
+    // If your messages can contain files, delete them
+    for (const msg of messages) {
+      if (msg.file) {
+        const oldFilePath = path.join(
+          __dirname,
+          "../../uploads/images/brand", // adjust path if needed
+          msg.file
+        );
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
       }
     }
+
+    // Delete messages from DB
+    await MessageModel.destroy({
+      where: { conversationId },
+    });
+
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
-      msg: "Brand deleted successfully",
+      msg: "Messages deleted successfully",
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({

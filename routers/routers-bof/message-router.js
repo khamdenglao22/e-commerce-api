@@ -9,7 +9,7 @@ const {
   findBrandById,
   createMessage,
   updateBrand,
-  deleteBrand,
+  deleteMessageByConversationId,
 } = require("../../controllers/controllers-bof/message-controller");
 
 router.post("/conversation", createConversation);
@@ -22,6 +22,6 @@ router.get("/messageByconversationId", findAllMessageByConversationId);
 // router.get("/:id", findBrandById);
 router.post("/", createMessage);
 router.put("/:conversationId", updateMessagesReadByConversationIdAndReceiverId);
-// router.delete("/:id", deleteBrand);
+router.delete("/:conversationId", deleteMessageByConversationId);
 
 module.exports = router;
