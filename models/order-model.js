@@ -23,7 +23,7 @@ const OrderModel = sequelize.define(
     order_date: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: new Date(),
+      defaultValue: DataTypes.NOW,
     },
     customer_id: {
       type: DataTypes.INTEGER,
