@@ -8,12 +8,14 @@ const {
   findAllAccount,
   createAccount,
   deleteAccountById,
+  updateAccount,
 } = require("../../controllers/controllers-bof/company-controller");
 
 // Route order matters!
 router.get("/account", findAllAccount);
 router.post("/account", createAccount);
 router.delete("/account/:id", deleteAccountById);
+router.put("/account/:id", updateAccount);
 
 router.get("/", findAll);
 router.post("/", create);

@@ -227,3 +227,64 @@ exports.deleteAccountById = async (req, res) => {
         .json({ status: HTTP_BAD_REQUEST, msg: err.message });
     });
 };
+
+exports.updateAccount = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find account by id
+    let result = await CompanyAccountModel.findByPk(id);
+    if (!result) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "Account not found",
+      });
+    }
+
+    // Handle image update if file uploaded
+    if (req.files && req.files.image) {
+      let image = req.files.image;
+      let allowFiles = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+      if (!allowFiles.includes(image.mimetype)) {
+        return res.status(HTTP_BAD_REQUEST).json({
+          status: HTTP_BAD_REQUEST,
+          msg: "ຕ້ອງແມ່ນໄຟລຮູບພາບເທົ່ານັ້ນ",
+        });
+      }
+
+      // Delete old image if exists
+      if (result.image) {
+        let oldPath = path.join(
+          __dirname,
+          `../../uploads/images/brands/${result.image}`
+        );
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+
+      // Save new image
+      const ext = path.extname(image.name);
+      const filename = Date.now() + ext;
+      const dirPath = path.join(__dirname, "../../uploads/images/brands");
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+      }
+      await image.mv(path.join(dirPath, filename));
+      req.body.image = filename;
+    }
+
+    // Update account
+    await CompanyAccountModel.update(req.body, { where: { id } });
+
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      msg: "Account updated successfully",
+    });
+  } catch (err) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: err.message,
+    });
+  }
+};
