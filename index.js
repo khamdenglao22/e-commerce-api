@@ -96,6 +96,7 @@ const addressCusRoute = require("./routers/routers-cus/address-cus-router");
 const orderCusRoute = require("./routers/routers-cus/order-cus-router");
 const sellerCusRoute = require("./routers/routers-cus/seller-cus-router");
 const searchCusRoute = require("./routers/routers-cus/search-cus-router");
+const vipCusRoute = require("./routers/routers-cus/vip-router");
 
 app.use("/api/v1/cus/register", customerRoute);
 app.use("/api/v1/cus/login-customer", authRoute);
@@ -109,6 +110,8 @@ app.use("/api/v1/cus/address", getCurrentCustomer, addressCusRoute);
 app.use("/api/v1/cus/order", getCurrentCustomer, orderCusRoute);
 app.use("/api/v1/cus/seller", getCurrentCustomer, sellerCusRoute);
 app.use("/api/v1/cus/search-page", searchCusRoute);
+app.use("/api/v1/cus/vip", getCurrentCustomer, vipCusRoute);
+
 
 // ສ່ວນສຳລັບ API Seller
 const {
