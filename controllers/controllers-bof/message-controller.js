@@ -31,6 +31,7 @@ exports.createConversation = async (req, res) => {
     // Sort users to normalize key
     const sortedUsers = [...users].sort((a, b) => a - b);
     const userKey = sortedUsers.join("-"); // e.g., "1-3"
+    console.log("User Key===========", userKey);
 
     // Check if conversation already exists
     const existing = await ConversationModel.findOne({ where: { userKey } });
@@ -66,6 +67,14 @@ exports.getConversationsByUserId = async (req, res) => {
     const { userId, type, role } = req.query;
     // const { type, role } = req.params;
     const parsedUserId = parseInt(userId);
+    console.log(
+      "Fetching conversations for User ID:===========================================",
+      parsedUserId,
+      "Type:",
+      type,
+      "Role:",
+      role
+    );
 
     if (!parsedUserId || !type || !role) {
       return res.status(HTTP_BAD_REQUEST).json({
@@ -97,7 +106,16 @@ exports.getConversationsByUserId = async (req, res) => {
           ? conv.users
           : JSON.parse(conv.users);
 
-        const otherUserId = usersArray.find((id) => id !== parsedUserId);
+        let otherUserId;
+
+        if (usersArray.length >= 2) {
+          if (usersArray[0] === usersArray[1]) {
+            // same IDs → take second one
+            otherUserId = usersArray[1];
+          } else {
+            otherUserId = usersArray.find((id) => id !== parsedUserId);
+          }
+        }
 
         let otherUser = null;
 
