@@ -1,4 +1,5 @@
 const VipModel = require("../../models/models-cus/vip-model");
+const SellerModel = require("../../models/models-seller/seller-model");
 const { HTTP_BAD_REQUEST, HTTP_CREATED } = require("../../utils/http_status");
 const path = require("path");
 
@@ -26,10 +27,14 @@ exports.createVip = async (req, res) => {
       });
     }
 
+    // console.log("<<<<<<<<<<<existingSeller", existingSeller);
+
     req.body.customer_id = cus_id;
-    req.body.seller_id = existingSeller.seller_id;
+    req.body.seller_id = existingSeller.id;
     req.body.vip_level = req.body.vip_level;
     req.body.price = req.body.price;
+
+    // console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< req.files", req.body);
 
     if (req.files && req.files.image) {
       const image = req.files.image;
