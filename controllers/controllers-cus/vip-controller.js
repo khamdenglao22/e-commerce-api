@@ -69,3 +69,27 @@ exports.createVip = async (req, res) => {
     });
   }
 };
+
+exports.checkVip = async (req, res) => {
+  try {
+    const { cus_id } = req.customer;
+    const existingVip = await VipModel.findOne({
+      where: {
+        customer_id: cus_id,
+      },
+    });
+    if (!existingVip) {
+      return res.status(HTTP_CREATED).json({
+        isVip: false,
+      });
+    }
+    res.status(HTTP_CREATED).json({
+      isVip: true,
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
