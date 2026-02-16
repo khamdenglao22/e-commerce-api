@@ -167,7 +167,7 @@ exports.findAllOrderBof = async (req, res) => {
       order: [
         [
           Sequelize.literal(
-            "CASE WHEN order_detail_status = 'confirm' THEN 0 ELSE 1 END"
+            "CASE WHEN order_detail_status = 'confirm' THEN 0 ELSE 1 END",
           ),
           "ASC",
         ],
@@ -286,7 +286,7 @@ exports.confirmOrderBof = async (req, res) => {
     });
 
     const allConfirm = checkOrder?.dataValues?.order_details?.every(
-      (item) => item.order_detail_status === req.body.order_detail_status
+      (item) => item.order_detail_status === req.body.order_detail_status,
     );
 
     if (allConfirm) {
@@ -305,3 +305,120 @@ exports.confirmOrderBof = async (req, res) => {
       .json({ status: HTTP_BAD_REQUEST, msg: error.message });
   }
 };
+
+exports.orderAutoBof = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const maxTotal = req.body.maxTotal;
+    const dataLimit = req.body.dataLimit;
+    const customer_id = req.body.customer_id;
+
+    let total = 0;
+    let selected = [];
+
+    // 1️⃣ random ຈາກ MySQL
+    let products = await ProductModel.findAll({
+      where: { product_status: "active" },
+      include: [
+        {
+          model: ProductMasterBofModel,
+          as: "product_master",
+          attributes: ["id", "price"],
+        },
+        {
+          model: SellerModel,
+          as: "seller",
+          attributes: ["id"],
+          where: { id: id },
+        },
+      ],
+      // order: Sequelize.literal("RAND()"),
+    });
+
+    let customer = await CustomerCusModel.findOne({
+      where: {
+        id: customer_id,
+      },
+    });
+
+    let address = await AddressCusModel.findOne({
+      where: {
+        customer_id: customer.id,
+      },
+    });
+
+    // 2️⃣ ຄຳນວນລາຄາ
+    for (let i = 0; i < 10; i++) {
+      total = 0;
+      selected = [];
+      const randomTwo = shuffleArray(products).slice(0, dataLimit);
+      for (let product of randomTwo) {
+        const plainProduct = product.toJSON();
+        total += plainProduct.product_master.price;
+
+        let colorData = await ProductColorOptionModel.findOne({
+          where: { product_id: plainProduct.product_master.id },
+          order: Sequelize.literal("RAND()"),
+        });
+
+        let sizeData = await ProductSizeOptionModel.findOne({
+          where: { product_id: plainProduct.product_master.id },
+          order: Sequelize.literal("RAND()"),
+        });
+
+        plainProduct.color_id = colorData ? colorData.id : null;
+        plainProduct.size_id = sizeData ? sizeData.id : null;
+
+        selected.push(plainProduct);
+      }
+      if (total <= maxTotal) {
+        break;
+      }
+      if (i === 9 && total > maxTotal) {
+        return res.json({
+          error: "not found",
+        });
+      }
+    }
+
+    const transaction = await sequelize.transaction();
+
+    const createOrder = await OrderModel.create(
+      {
+        customer_id: id,
+        total_amount: total,
+        shipping_address: address.id,
+      },
+      { transaction },
+    );
+
+    await OrderDetailModel.bulkCreate(
+      selected.map((item) => ({
+        order_id: createOrder.id,
+        product_id: item.id,
+        qty: 1,
+        price: item.product_master.price,
+        product_size_id: item.size_id,
+        product_color_id: item.color_id,
+      })),
+      { transaction },
+    );
+
+    transaction.commit();
+
+    return res.json({
+      status: 200,
+      msg: "order success",
+    });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
