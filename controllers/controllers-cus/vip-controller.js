@@ -27,14 +27,10 @@ exports.createVip = async (req, res) => {
       });
     }
 
-    // console.log("<<<<<<<<<<<existingSeller", existingSeller);
-
     req.body.customer_id = cus_id;
     req.body.seller_id = existingSeller.id;
     req.body.vip_level = req.body.vip_level;
     req.body.price = req.body.price;
-
-    // console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< req.files", req.body);
 
     if (req.files && req.files.image) {
       const image = req.files.image;
@@ -76,6 +72,7 @@ exports.checkVip = async (req, res) => {
     const existingVip = await VipModel.findOne({
       where: {
         customer_id: cus_id,
+        status: "active",
       },
     });
     if (!existingVip) {
