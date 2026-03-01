@@ -132,6 +132,7 @@ exports.findSellerSearch = async (req, res) => {
     let store = await SellerModel.findAll({
       where: {
         store_name: { [Op.like]: `%${name}%` },
+        seller_status: "active",
       },
     });
 

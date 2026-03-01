@@ -63,7 +63,7 @@ exports.findOrderSellerList = async (req, res) => {
       order: [
         [
           Sequelize.literal(
-            "CASE WHEN order_detail_status = 'success' THEN 0 ELSE 1 END"
+            "CASE WHEN order_detail_status = 'success' THEN 0 ELSE 1 END",
           ),
           "ASC",
         ],
@@ -78,6 +78,7 @@ exports.findOrderSellerList = async (req, res) => {
             as: "customer",
           },
           where: { ...filter },
+          order: [["order_date", "ASC"]],
         },
         {
           model: ProductModel,
@@ -160,7 +161,7 @@ exports.confirmOrderSeller = async (req, res) => {
     });
 
     const allConfirm = checkOrder?.dataValues?.order_details?.every(
-      (item) => item.order_detail_status === "confirm"
+      (item) => item.order_detail_status === "confirm",
     );
 
     const transaction = await sequelize.transaction();
@@ -191,7 +192,7 @@ exports.confirmOrderSeller = async (req, res) => {
           seller_id: seller_id,
           order_detail_id: orderDetail.dataValues.id,
         },
-        { transaction }
+        { transaction },
       );
     }
 
@@ -230,7 +231,7 @@ exports.confirmOrderSeller = async (req, res) => {
             overview_value: overviewValue,
             overview_type: "rating",
           },
-          { transaction }
+          { transaction },
         );
       }
     }
