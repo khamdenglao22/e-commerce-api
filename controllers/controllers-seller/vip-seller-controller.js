@@ -6,17 +6,31 @@ const {
 } = require("../../utils/http_status");
 const SellerModel = require("../../models/models-seller/seller-model");
 const path = require("path");
+const e = require("cors");
 
 exports.findBySellerId = async (req, res) => {
   try {
     const { seller_id } = req.seller;
+    let new_vip_status = false;
     const vip = await VipModel.findOne({
       where: {
         seller_id: seller_id,
         status: "active",
       },
     });
-    if (!vip) {
+
+    const vipNew = await VipModel.findOne({
+      where: {
+        seller_id: seller_id,
+        status: "inactive",
+      },
+    });
+
+    if (vipNew) {
+      new_vip_status = true;
+    }
+
+    if (!vip && !vipNew) {
       return res.status(HTTP_NOT_FOUND).json({
         status: HTTP_NOT_FOUND,
         msg: "VIP not found for this seller",
@@ -26,6 +40,7 @@ exports.findBySellerId = async (req, res) => {
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
       vip,
+      new_vip_status,
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({
