@@ -61,7 +61,7 @@ exports.confirmUpgradeVip = async (req, res) => {
     }
 
     await VipModel.update(
-      { status: "inactive" },
+      { status: "unactive" },
       { where: { seller_id: seller_id } },
     );
 
