@@ -27,6 +27,16 @@ exports.createVip = async (req, res) => {
       });
     }
 
+    const existingVip = await VipModel.findOne({
+      where: {
+        customer_id: cus_id,
+      },
+    });
+
+    if (existingSeller && !existingVip) {
+      req.body.status = "inactive";
+    }
+
     req.body.customer_id = cus_id;
     req.body.seller_id = existingSeller.id;
     req.body.vip_level = req.body.vip_level;
@@ -72,16 +82,32 @@ exports.checkVip = async (req, res) => {
     const existingVip = await VipModel.findOne({
       where: {
         customer_id: cus_id,
-        status: "active",
       },
     });
-    if (!existingVip) {
+
+    const existingSeller = await SellerModel.findOne({
+      where: {
+        customer_id: cus_id,
+      },
+    });
+
+    if (!existingVip && !existingSeller) {
       return res.status(HTTP_CREATED).json({
         isVip: false,
+        isSeller: false,
       });
     }
+
+    if (!existingVip && existingSeller) {
+      return res.status(HTTP_CREATED).json({
+        isVip: false,
+        isSeller: true,
+      });
+    }
+
     res.status(HTTP_CREATED).json({
       isVip: true,
+      isSeller: true,
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({

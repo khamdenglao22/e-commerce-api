@@ -4,9 +4,11 @@ const {
   confirmSeller,
   findSellerById,
   findSumWallet,
+  findSellerVip,
 } = require("../../controllers/controllers-bof/seller-bof-controller");
 
 router.get("/", findSellerAll);
+router.get("/new-vip", findSellerVip);
 router.get("/:id", findSellerById);
 router.put("/confirm-seller/:id", confirmSeller);
 

@@ -135,9 +135,9 @@ exports.findSumOverview = async (req, res) => {
       orderToDay = orderToDay.map((row) => {
         let total_price = row.price * row.qty;
         if (total_price <= 999) {
-          row.dataValues.profit = (total_price * 20) / 100 + total_price;
+          row.dataValues.profit = (total_price * 20) / 100;
         } else {
-          row.dataValues.profit = (total_price * 35) / 100 + total_price;
+          row.dataValues.profit = (total_price * 35) / 100;
         }
         return row;
       });

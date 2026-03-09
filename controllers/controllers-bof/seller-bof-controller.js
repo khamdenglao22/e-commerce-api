@@ -16,6 +16,7 @@ const {
 const { HTTP_BAD_REQUEST, HTTP_SUCCESS } = require("../../utils/http_status");
 const { Op } = require("sequelize");
 const ShopOverviewModel = require("../../models/models-seller/shop-overview-model");
+const { VipModel } = require("../../models");
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 10;
@@ -53,6 +54,18 @@ exports.findSellerAll = async (req, res) => {
     await SellerModel.findAndCountAll({
       order: [["id", "DESC"]],
       where: { ...filter },
+      include: [
+        {
+          model: VipModel,
+          as: "vips",
+          where: {
+            status: {
+              [Op.in]: ["inactive"],
+            },
+          },
+          required: false,
+        },
+      ],
       limit,
       offset,
     })
@@ -82,6 +95,32 @@ exports.findSellerAll = async (req, res) => {
   }
 };
 
+exports.findSellerVip = async (req, res) => {
+  try {
+    const data = await SellerModel.findAll({
+      order: [["id", "DESC"]],
+      where: { seller_status: "active" },
+      include: [
+        {
+          model: VipModel,
+          as: "vips",
+          where: {
+            status: {
+              [Op.in]: ["inactive"],
+            },
+          },
+        },
+      ],
+    });
+
+    res.json(data);
+  } catch (error) {
+    res
+      .status(HTTP_BAD_REQUEST)
+      .json({ status: HTTP_BAD_REQUEST, msg: error.message });
+  }
+};
+
 exports.confirmSeller = async (req, res) => {
   try {
     const { id } = req.params;
@@ -95,7 +134,7 @@ exports.confirmSeller = async (req, res) => {
 
     await SellerModel.update(
       { seller_status: req.body.seller_status },
-      { where: { id: id } }
+      { where: { id: id } },
     );
 
     const data_update = await SellerModel.findByPk(id);
@@ -258,7 +297,7 @@ exports.findSumWallet = async (req, res) => {
     if (dataProfit.length > 0) {
       totalProfitAmount = dataProfit.reduce(
         (sum, item) => parseFloat(sum) + parseFloat(item.bonus),
-        0
+        0,
       );
     }
 
@@ -277,7 +316,7 @@ exports.findSumWallet = async (req, res) => {
     if (dataFrozen.length > 0) {
       totalFrozenAmount = dataFrozen.reduce(
         (sum, item) => parseFloat(sum) + parseFloat(item.bonus),
-        0
+        0,
       );
     }
 
@@ -295,7 +334,7 @@ exports.findSumWallet = async (req, res) => {
     if (dataOrderAmount.length > 0) {
       totalOrderAmount = dataOrderAmount.reduce(
         (sum, item) => sum + item.price * item.qty,
-        0
+        0,
       );
     }
 
