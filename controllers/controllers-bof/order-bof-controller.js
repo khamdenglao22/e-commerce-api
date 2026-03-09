@@ -316,6 +316,8 @@ exports.orderAutoBof = async (req, res) => {
     let total = 0;
     let selected = [];
 
+    const minTotal = req.body.maxTotal - (req.body.maxTotal * 20) / 100;
+
     // 1️⃣ random ຈາກ MySQL
     let products = await ProductModel.findAll({
       where: { product_status: "active" },
@@ -347,6 +349,12 @@ exports.orderAutoBof = async (req, res) => {
       },
     });
 
+    if (!customer || !address) {
+      return res.status(400).json({
+        msg: "Customer or address not found",
+      });
+    }
+
     // 2️⃣ ຄຳນວນລາຄາ
     for (let i = 0; i < 10; i++) {
       total = 0;
@@ -371,12 +379,12 @@ exports.orderAutoBof = async (req, res) => {
 
         selected.push(plainProduct);
       }
-      if (total <= maxTotal) {
+      if (minTotal <= total && total <= maxTotal) {
         break;
       }
-      if (i === 9 && total > maxTotal) {
-        return res.json({
-          error: "not found",
+      if ((i === 9 && total > maxTotal) || total < minTotal) {
+        return res.status(400).json({
+          msg: `not found ${total}`,
         });
       }
     }
@@ -411,7 +419,7 @@ exports.orderAutoBof = async (req, res) => {
       msg: "order success",
     });
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    return res.status(400).json({ msg: err.message });
   }
 };
 
