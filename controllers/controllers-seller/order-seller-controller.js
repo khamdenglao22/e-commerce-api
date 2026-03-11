@@ -67,7 +67,7 @@ exports.findOrderSellerList = async (req, res) => {
           ),
           "ASC",
         ],
-        ["order_detail_status", "ASC"],
+        [{ model: OrderModel, as: "order" }, "order_date", "DESC"],
       ],
       include: [
         {
