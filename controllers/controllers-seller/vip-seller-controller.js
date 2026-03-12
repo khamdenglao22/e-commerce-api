@@ -26,6 +26,13 @@ exports.findBySellerId = async (req, res) => {
       },
     });
 
+    const vipReject = await VipModel.findAll({
+      where: {
+        seller_id: seller_id,
+        status: "reject",
+      },
+    });
+
     if (vipNew) {
       new_vip_status = true;
     }
@@ -41,6 +48,7 @@ exports.findBySellerId = async (req, res) => {
       status: HTTP_SUCCESS,
       vip,
       new_vip_status,
+      vipReject,
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({
