@@ -7,6 +7,7 @@ const {
   HTTP_NOT_FOUND,
 } = require("../../utils/http_status");
 const ShopOverviewModel = require("../../models/models-seller/shop-overview-model");
+const { Op } = require("sequelize");
 
 exports.findBySellerId = async (req, res) => {
   try {
@@ -63,7 +64,14 @@ exports.confirmUpgradeVip = async (req, res) => {
 
     await VipModel.update(
       { status: "unactive" },
-      { where: { seller_id: seller_id } },
+      {
+        where: {
+          seller_id: seller_id,
+          status: {
+            [Op.ne]: "reject",
+          },
+        },
+      },
     );
 
     await VipModel.update({ status: "active" }, { where: { id: id } });
@@ -113,6 +121,41 @@ exports.confirmUpgradeVip = async (req, res) => {
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,
       msg: "Upgrade vip successfully",
+    });
+  } catch (error) {
+    res.status(HTTP_BAD_REQUEST).json({
+      status: HTTP_BAD_REQUEST,
+      msg: error.message,
+    });
+  }
+};
+
+exports.rejectVip = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { seller_id } = req.query;
+    const remark = req.body.remark;
+
+    const existingVip = await VipModel.findOne({
+      where: {
+        id: id,
+      },
+    });
+    if (!existingVip) {
+      return res.status(HTTP_NOT_FOUND).json({
+        status: HTTP_NOT_FOUND,
+        msg: "VIP not found",
+      });
+    }
+
+    await VipModel.update(
+      { status: "reject", remark: remark },
+      { where: { id: id, seller_id: seller_id } },
+    );
+
+    res.status(HTTP_SUCCESS).json({
+      status: HTTP_SUCCESS,
+      msg: "Reject vip successfully",
     });
   } catch (error) {
     res.status(HTTP_BAD_REQUEST).json({

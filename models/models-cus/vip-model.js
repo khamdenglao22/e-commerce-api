@@ -38,6 +38,11 @@ const VipModel = sequelize.define(
       allowNull: false,
       defaultValue: "active",
     },
+
+    remark: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
   },
   {
     tableName: "seller_vip",
