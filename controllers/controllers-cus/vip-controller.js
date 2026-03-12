@@ -33,14 +33,15 @@ exports.createVip = async (req, res) => {
       },
     });
 
-    if (existingSeller && !existingVip) {
-      req.body.status = "inactive";
-    }
+    // if (existingSeller && !existingVip) {
+    //   req.body.status = "inactive";
+    // }
 
     req.body.customer_id = cus_id;
     req.body.seller_id = existingSeller.id;
     req.body.vip_level = req.body.vip_level;
     req.body.price = req.body.price;
+    req.body.status = "inactive";
 
     if (req.files && req.files.image) {
       const image = req.files.image;

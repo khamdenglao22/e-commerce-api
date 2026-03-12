@@ -6,6 +6,7 @@ const {
   HTTP_SUCCESS,
   HTTP_NOT_FOUND,
 } = require("../../utils/http_status");
+const ShopOverviewModel = require("../../models/models-seller/shop-overview-model");
 
 exports.findBySellerId = async (req, res) => {
   try {
@@ -66,6 +67,48 @@ exports.confirmUpgradeVip = async (req, res) => {
     );
 
     await VipModel.update({ status: "active" }, { where: { id: id } });
+
+    let overview_value = 0;
+
+    console.log(existingVip.dataValues.vip_level);
+
+    if (existingVip.dataValues.vip_level === "1") {
+      overview_value = 5;
+    } else if (existingVip.dataValues.vip_level === "2") {
+      overview_value = 10;
+    } else if (existingVip.dataValues.vip_level === "3") {
+      overview_value = 15;
+    }
+
+    const overview = await ShopOverviewModel.findOne({
+      where: {
+        seller_id: seller_id,
+        overview_type: "credit",
+        overview_status: "vip",
+      },
+    });
+
+    if (overview) {
+      await ShopOverviewModel.update(
+        {
+          overview_value: overview_value,
+        },
+        {
+          where: {
+            seller_id: seller_id,
+            overview_type: "credit",
+            overview_status: "vip",
+          },
+        },
+      );
+    } else {
+      await ShopOverviewModel.create({
+        seller_id: seller_id,
+        overview_value: overview_value,
+        overview_type: "credit",
+        overview_status: "vip",
+      });
+    }
 
     res.status(HTTP_SUCCESS).json({
       status: HTTP_SUCCESS,

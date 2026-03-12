@@ -37,8 +37,18 @@ exports.findSumOverview = async (req, res) => {
 
     if (dataCreditOut === null) dataCreditOut = 0;
 
+    let dataCreditVip = await ShopOverviewModel.sum("overview_value", {
+      where: {
+        seller_id,
+        overview_type: "credit",
+        overview_status: "vip",
+      },
+    });
+
+    if (dataCreditVip === null) dataCreditVip = 0;
+
     let dataCreditAll = 0;
-    dataCreditAll = dataCreditIn - dataCreditOut;
+    dataCreditAll = dataCreditVip + dataCreditIn - dataCreditOut;
     if (dataCreditAll <= 0) dataCreditAll = 0;
 
     let dataFollow = await ShopOverviewModel.sum("overview_value", {
@@ -127,7 +137,7 @@ exports.findSumOverview = async (req, res) => {
     if (orderToDay.length > 0) {
       orderTodayPrice = orderToDay.reduce(
         (sum, item) => sum + item.price * item.qty,
-        0
+        0,
       );
     }
 
@@ -147,7 +157,7 @@ exports.findSumOverview = async (req, res) => {
     if (orderToDay.length > 0) {
       totalProfitToday = orderToDay.reduce(
         (sum, item) => sum + item.dataValues.profit,
-        0
+        0,
       );
     }
 

@@ -148,11 +148,11 @@ exports.confirmSeller = async (req, res) => {
         seller_id: data_update.id,
       };
       await UserBofModel.create(user_req);
-      await ShopOverviewModel.create({
-        seller_id: data_update.id,
-        overview_value: 5,
-        overview_type: "credit",
-      });
+      // await ShopOverviewModel.create({
+      //   seller_id: data_update.id,
+      //   overview_value: 5,
+      //   overview_type: "credit",
+      // });
     } else {
       await UserBofModel.destroy({
         where: { seller_id: data_update.id },
@@ -233,8 +233,18 @@ exports.findSellerById = async (req, res) => {
 
     if (dataCreditOut === null) dataCreditOut = 0;
 
+    let dataCreditVip = await ShopOverviewModel.sum("overview_value", {
+      where: {
+        seller_id: id,
+        overview_type: "credit",
+        overview_status: "vip",
+      },
+    });
+
+    if (dataCreditVip === null) dataCreditVip = 0;
+
     let dataCreditAll = 0;
-    dataCreditAll = dataCreditIn - dataCreditOut;
+    dataCreditAll = dataCreditVip + dataCreditIn - dataCreditOut;
     if (dataCreditAll <= 0) dataCreditAll = 0;
 
     result.dataValues.seller_credit = dataCreditAll;
