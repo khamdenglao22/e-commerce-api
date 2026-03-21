@@ -51,7 +51,7 @@ exports.findSellerAll = async (req, res) => {
   }
 
   try {
-    await SellerModel.findAndCountAll({
+    const data = await SellerModel.findAndCountAll({
       order: [["id", "DESC"]],
       where: { ...filter },
       include: [
@@ -68,26 +68,36 @@ exports.findSellerAll = async (req, res) => {
       ],
       limit,
       offset,
-    })
-      .then((data) => {
-        const response = getPagingData(data, page, limit);
-        response.result = response.result.map((our) => {
-          if (our.front_document && our.back_certificate) {
-            our.dataValues.front_document = `${SELLER_MEDIA_URL}/${our.front_document}`;
-            our.dataValues.back_certificate = `${SELLER_MEDIA_URL}/${our.back_certificate}`;
-          } else {
-            our.dataValues.front_document = `${BASE_MEDIA_URL}/600x400.svg`;
-            our.dataValues.back_certificate = `${BASE_MEDIA_URL}/600x400.svg`;
-          }
-          return our;
+    });
+
+    const response = getPagingData(data, page, limit);
+
+    response.result = await Promise.all(
+      response.result.map(async (our) => {
+        // image
+        if (our.front_document && our.back_certificate) {
+          our.dataValues.front_document = `${SELLER_MEDIA_URL}/${our.front_document}`;
+          our.dataValues.back_certificate = `${SELLER_MEDIA_URL}/${our.back_certificate}`;
+        } else {
+          our.dataValues.front_document = `${BASE_MEDIA_URL}/600x400.svg`;
+          our.dataValues.back_certificate = `${BASE_MEDIA_URL}/600x400.svg`;
+        }
+
+        // vip level
+        const vip = await VipModel.findOne({
+          where: {
+            seller_id: our.id,
+            status: "active",
+          },
         });
-        res.json(response);
-      })
-      .catch((err) => {
-        res
-          .status(HTTP_BAD_REQUEST)
-          .json({ status: HTTP_BAD_REQUEST, msg: err.message });
-      });
+
+        our.dataValues.vip_level = vip ? vip.vip_level : null;
+
+        return our;
+      }),
+    );
+
+    res.json(response);
   } catch (error) {
     res
       .status(HTTP_BAD_REQUEST)
