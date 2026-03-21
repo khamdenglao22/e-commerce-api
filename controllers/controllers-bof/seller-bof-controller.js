@@ -51,7 +51,7 @@ exports.findSellerAll = async (req, res) => {
   }
 
   try {
-    await SellerModel.findAndCountAll({
+    const data = await SellerModel.findAndCountAll({
       order: [["id", "DESC"]],
       where: { ...filter },
       include: [
@@ -68,26 +68,36 @@ exports.findSellerAll = async (req, res) => {
       ],
       limit,
       offset,
-    })
-      .then((data) => {
-        const response = getPagingData(data, page, limit);
-        response.result = response.result.map((our) => {
-          if (our.front_document && our.back_certificate) {
-            our.dataValues.front_document = `${SELLER_MEDIA_URL}/${our.front_document}`;
-            our.dataValues.back_certificate = `${SELLER_MEDIA_URL}/${our.back_certificate}`;
-          } else {
-            our.dataValues.front_document = `${BASE_MEDIA_URL}/600x400.svg`;
-            our.dataValues.back_certificate = `${BASE_MEDIA_URL}/600x400.svg`;
-          }
-          return our;
+    });
+
+    const response = getPagingData(data, page, limit);
+
+    response.result = await Promise.all(
+      response.result.map(async (our) => {
+        // image
+        if (our.front_document && our.back_certificate) {
+          our.dataValues.front_document = `${SELLER_MEDIA_URL}/${our.front_document}`;
+          our.dataValues.back_certificate = `${SELLER_MEDIA_URL}/${our.back_certificate}`;
+        } else {
+          our.dataValues.front_document = `${BASE_MEDIA_URL}/600x400.svg`;
+          our.dataValues.back_certificate = `${BASE_MEDIA_URL}/600x400.svg`;
+        }
+
+        // vip level
+        const vip = await VipModel.findOne({
+          where: {
+            seller_id: our.id,
+            status: "active",
+          },
         });
-        res.json(response);
-      })
-      .catch((err) => {
-        res
-          .status(HTTP_BAD_REQUEST)
-          .json({ status: HTTP_BAD_REQUEST, msg: err.message });
-      });
+
+        our.dataValues.vip_level = vip ? vip.vip_level : null;
+
+        return our;
+      }),
+    );
+
+    res.json(response);
   } catch (error) {
     res
       .status(HTTP_BAD_REQUEST)
@@ -214,6 +224,20 @@ exports.findSellerById = async (req, res) => {
     // if (userOfSeller) {
     result.dataValues.seller_user = userOfSeller;
     // }
+
+    let productNotConfirm = await OrderDetailModel.count({
+      where: { order_detail_status: "success" },
+      include: [
+        {
+          model: ProductModel,
+          as: "product",
+          where: { seller_id: id },
+        },
+      ],
+    });
+    if (productNotConfirm === null) productNotConfirm = 0;
+    result.dataValues.productNotConfirm = productNotConfirm;
+
     let dataCreditIn = await ShopOverviewModel.sum("overview_value", {
       where: {
         seller_id: id,
@@ -335,6 +359,27 @@ exports.findSumWallet = async (req, res) => {
     });
     if (totalWithdrawAmount === null) totalWithdrawAmount = 0;
 
+    let totalWithdrawableAmount = await WalletSellerModel.sum("balance", {
+      where: { wallet_Type: ["deposit"], seller_id },
+    });
+
+    let totalRecharged = 0;
+    totalRecharged = totalWithdrawableAmount;
+
+    if (totalWithdrawableAmount === null && totalWithdrawableAmount < 0)
+      totalWithdrawableAmount = 0;
+
+    let withdrawableProfit = 0;
+    withdrawableProfit = totalWithdrawableAmount + totalProfitAmount;
+
+    let totalWithdraw = await WithdrawSellerModel.sum("amount", {
+      where: {
+        withdraw_status: ["approved", "pending"],
+        seller_id,
+        visible: true,
+      },
+    });
+
     let dataOrderAmount = await OrderDetailModel.findAll({
       where: { order_detail_status: ["confirm", "delivery"] },
       include: [{ model: ProductModel, as: "product", where: { seller_id } }],
@@ -353,12 +398,21 @@ exports.findSumWallet = async (req, res) => {
       totalProfitAmount -
       (totalOrderAmount + totalWithdrawAmount);
 
+    totalWithdrawableAmount =
+      withdrawableProfit - (totalOrderAmount + totalWithdraw);
+
+    if (totalWithdrawableAmount <= 0) {
+      totalWithdrawableAmount = 0;
+    }
+
     res.status(200).json({
       totalWalletBalance,
       totalProfitAmount,
       totalFrozenAmount,
       totalWithdrawAmount,
       totalOrderAmount,
+      totalWithdrawableAmount,
+      totalRecharged,
     });
   } catch (error) {
     res.status(400).json({ status: 400, msg: error.message });
